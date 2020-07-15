@@ -1,4 +1,4 @@
-package gitlab_client
+package providers
 
 import (
 	"fmt"
@@ -64,25 +64,29 @@ func (g *Gitlab) Init() error {
 }
 
 // SearchUser searches a user by name
-func (g *Gitlab) SearchUser(name string) (*gitlab.User, error) {
+func (g *Gitlab) UserExists(name string) (bool, error) {
 	users, err := g.api.ListUsers(name)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	if len(users) > 1 {
-		return nil, fmt.Errorf("Multiple users found")
+	for _, user := range users {
+		if user.Username == name {
+			return true, nil
+		}
 	}
-	return users[0], nil
+	return false, fmt.Errorf("User not found")
 }
 
 // SearchGroup searches a group by name
-func (g *Gitlab) SearchGroup(name string) (*gitlab.Group, error) {
+func (g *Gitlab) GroupExists(name string) (bool, error) {
 	groups, err := g.api.ListGroups(name)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	if len(groups) > 1 {
-		return nil, fmt.Errorf("Multiple groups found")
+	for _, group := range groups {
+		if group.Name == name {
+			return true, nil
+		}
 	}
-	return groups[0], nil
+	return false, fmt.Errorf("Group not found")
 }

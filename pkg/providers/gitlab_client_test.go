@@ -1,4 +1,4 @@
-package gitlab_client
+package providers
 
 import (
 	"fmt"
@@ -66,7 +66,7 @@ func TestListUsersSuccess(t *testing.T) {
 	MockGitlabClient.EXPECT().ListUsers(username).Return(gitlabUsers, nil).Times(1)
 	user, err := client.api.ListUsers(username)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, gitlabUsers, user)
+	assert.Equal(t, username, user[0].Username)
 }
 func TestListUsersFailure(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
@@ -100,9 +100,9 @@ func TestSearchUserSuccess(t *testing.T) {
 		api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return(gitlabUsers, nil).Times(1)
-	user, err := client.SearchUser(username)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, gitlabUsers[0].Username, user.Username)
+	valid, err := client.UserExists(username)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, valid)
 }
 func TestSearchUserFailure(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
@@ -115,9 +115,24 @@ func TestSearchUserFailure(t *testing.T) {
 		api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return([]*gitlab.User{}, fmt.Errorf("Error searching for user %s:", username)).Times(1)
-	user, err := client.SearchUser(username)
-	assert.Equal(t, err, fmt.Errorf("Error searching for user %s:", username))
-	assert.Equal(t, (*gitlab.User)(nil), user)
+	valid, err := client.UserExists(username)
+	assert.Equal(t, fmt.Errorf("Error searching for user %s:", username), err)
+	assert.Equal(t, false, valid)
+}
+func TestSearchUserNotFound(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	username := "mock_user"
+	defer mockCtrl.Finish()
+	MockGitlabClient := NewMockClientInterface(mockCtrl)
+	client := &Gitlab{
+		Token:   "example_token",
+		BaseURL: "example_url",
+		api:     MockGitlabClient,
+	}
+	MockGitlabClient.EXPECT().ListUsers(username).Return([]*gitlab.User{}, nil).Times(1)
+	valid, err := client.UserExists(username)
+	assert.Equal(t, fmt.Errorf("User not found"), err)
+	assert.Equal(t, false, valid)
 }
 func TestSearchUserMultipleUsers(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
@@ -138,9 +153,9 @@ func TestSearchUserMultipleUsers(t *testing.T) {
 		api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return(gitlabUsers, nil).Times(1)
-	user, err := client.SearchUser(username)
-	assert.Equal(t, err, fmt.Errorf("Multiple users found"))
-	assert.Equal(t, (*gitlab.User)(nil), user)
+	valid, err := client.UserExists(username)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, valid)
 }
 func TestSearchGroupSuccess(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
@@ -158,9 +173,9 @@ func TestSearchGroupSuccess(t *testing.T) {
 		api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListGroups(groupName).Return(gitlabGroups, nil).Times(1)
-	group, err := client.SearchGroup(groupName)
+	valid, err := client.GroupExists(groupName)
 	assert.Equal(t, err, nil)
-	assert.Equal(t, gitlabGroups[0].Name, group.Name)
+	assert.Equal(t, true, valid)
 }
 func TestSearchGroupFailure(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
@@ -173,11 +188,26 @@ func TestSearchGroupFailure(t *testing.T) {
 		api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListGroups(groupName).Return([]*gitlab.Group{}, fmt.Errorf("Error searching for group %s", groupName)).Times(1)
-	group, err := client.SearchGroup(groupName)
+	valid, err := client.GroupExists(groupName)
 	assert.Equal(t, fmt.Errorf("Error searching for group %s", groupName), err)
-	assert.Equal(t, (*gitlab.Group)(nil), group)
+	assert.Equal(t, false, valid)
 }
-func TestSearchGroupMultiplegroups(t *testing.T) {
+func TestSearchGroupNotFound(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	groupName := "mock_group"
+	defer mockCtrl.Finish()
+	MockGitlabClient := NewMockClientInterface(mockCtrl)
+	client := &Gitlab{
+		Token:   "example_token",
+		BaseURL: "example_url",
+		api:     MockGitlabClient,
+	}
+	MockGitlabClient.EXPECT().ListGroups(groupName).Return([]*gitlab.Group{}, nil).Times(1)
+	valid, err := client.GroupExists(groupName)
+	assert.Equal(t, fmt.Errorf("Group not found"), err)
+	assert.Equal(t, false, valid)
+}
+func TestSearchGroupMultipleGroups(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	groupName := "mock_group"
 	gitlabGroups := []*gitlab.Group{
@@ -196,7 +226,7 @@ func TestSearchGroupMultiplegroups(t *testing.T) {
 		api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListGroups(groupName).Return(gitlabGroups, nil).Times(1)
-	group, err := client.SearchGroup(groupName)
-	assert.Equal(t, err, fmt.Errorf("Multiple groups found"))
-	assert.Equal(t, (*gitlab.Group)(nil), group)
+	valid, err := client.GroupExists(groupName)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, true, valid)
 }
