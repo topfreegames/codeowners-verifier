@@ -1,18 +1,17 @@
 package cmd
 
 import (
-	"fmt"
-	"log"
 	"os"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
 	"github.com/spf13/viper"
 )
 
 var (
 	token   = "token"
 	baseurl = "base-url"
+	Verbose bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -29,26 +28,33 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
 func init() {
+	// Logging setup
+	// Log as JSON instead of te default ASCII formatter.
+	log.SetFormatter(&log.JSONFormatter{})
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
+	// Only log the warning severity or above.
+	log.SetLevel(log.WarnLevel)
 	cobra.OnInitialize(initConfig)
 	if err := viper.BindEnv(token, "CODEOWNER_PROVIDER_TOKEN"); err != nil {
-		log.Fatalf("error initializing viper for env CODEOWNER_PROVIDER_TOKEN")
+		log.Fatal("error initializing viper for env CODEOWNER_PROVIDER_TOKEN")
 	}
 	rootCmd.PersistentFlags().String(token, viper.GetString(token), "Token to be used to authenticate with the provider.(Defaults to CODEOWNER_PROVIDER_TOKEN env var)")
 	if err := viper.BindPFlag(token, rootCmd.PersistentFlags().Lookup(token)); err != nil {
-		log.Fatalf("error binding viper for flag CODEOWNER_PROVIDER_TOKEN")
+		log.Fatal("error binding viper for flag CODEOWNER_PROVIDER_TOKEN")
 	}
 	if err := viper.BindEnv(baseurl, "CODEOWNER_PROVIDER_URL"); err != nil {
-		log.Fatalf("error initializing viper for env CODEOWNER_PROVIDER_URL")
+		log.Fatal("error initializing viper for env CODEOWNER_PROVIDER_URL")
 	}
 	rootCmd.PersistentFlags().String(baseurl, viper.GetString(baseurl), "BaseURL to connect to the provider (Defaults to CODEOWNER_PROVIDER_URL env var)")
 	if err := viper.BindPFlag(baseurl, rootCmd.PersistentFlags().Lookup(baseurl)); err != nil {
-		log.Fatalf("error binding viper for flag CODEOWNER_PROVIDER_URL")
+		log.Fatal("error binding viper for flag CODEOWNER_PROVIDER_URL")
 	}
 }
 

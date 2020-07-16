@@ -9,6 +9,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/afero v1.3.2 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.0.0

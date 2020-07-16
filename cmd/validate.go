@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"log"
-
-	"fmt"
 	"os"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/topfreegames/codeowners-verifier/pkg/providers"
 	"github.com/topfreegames/codeowners-verifier/pkg/verifier"
@@ -27,11 +25,10 @@ var validateCmd = &cobra.Command{
 			log.Fatalf("Error reading CODEOWNERS file contents: %s", err)
 		}
 		if valid {
-			fmt.Printf("Valid CODEOWNERS file")
+			log.Info("Valid CODEOWNERS file")
 			os.Exit(0)
 		} else {
-			fmt.Printf("Invalid CODEOWNERS file")
-			os.Exit(1)
+			log.Fatal("Invalid CODEOWNERS file")
 		}
 	},
 }
