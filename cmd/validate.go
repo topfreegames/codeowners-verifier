@@ -11,16 +11,16 @@ import (
 
 // validateCmd represents the validate command
 var validateCmd = &cobra.Command{
-	Use:   "validate provider codeowner_file",
+	Use:   "validate provider",
 	Short: "Validate the integrity of a CODEOWNERS file",
 	Long:  `Check if every entry on the CODEOWNERS file exists on the provider.`,
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		client, err := providers.InitProvider(args[0], cmd.Flag(token).Value.String(), cmd.Flag(baseurl).Value.String())
 		if err != nil {
 			log.Fatalf("Could not initialize provider: %s", err)
 		}
-		valid, err := verifier.CheckCodeowner(client, args[1])
+		valid, err := verifier.ValidateCodeownerFile(client, cmd.Flag(codeowners).Value.String())
 		if err != nil {
 			log.Fatalf("Error reading CODEOWNERS file contents: %s", err)
 		}

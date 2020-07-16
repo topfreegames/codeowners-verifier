@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	token   = "token"
-	baseurl = "base-url"
-	Verbose bool
+	token      = "token"
+	baseurl    = "base-url"
+	codeowners = "codeowners"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -34,13 +34,11 @@ func Execute() {
 
 func init() {
 	// Logging setup
-	// Log as JSON instead of te default ASCII formatter.
-	log.SetFormatter(&log.JSONFormatter{})
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	log.SetOutput(os.Stdout)
 	// Only log the warning severity or above.
-	log.SetLevel(log.WarnLevel)
+	log.SetLevel(log.InfoLevel)
 	cobra.OnInitialize(initConfig)
 	if err := viper.BindEnv(token, "CODEOWNER_PROVIDER_TOKEN"); err != nil {
 		log.Fatal("error initializing viper for env CODEOWNER_PROVIDER_TOKEN")
@@ -55,6 +53,13 @@ func init() {
 	rootCmd.PersistentFlags().String(baseurl, viper.GetString(baseurl), "BaseURL to connect to the provider (Defaults to CODEOWNER_PROVIDER_URL env var)")
 	if err := viper.BindPFlag(baseurl, rootCmd.PersistentFlags().Lookup(baseurl)); err != nil {
 		log.Fatal("error binding viper for flag CODEOWNER_PROVIDER_URL")
+	}
+	if err := viper.BindEnv(codeowners, "CODEOWNER_PATH"); err != nil {
+		log.Fatal("error initializing viper for env CODEOWNER_PATH")
+	}
+	rootCmd.PersistentFlags().String(codeowners, viper.GetString(codeowners), "Path to the CODEOWNERS file (Defaults to CODEOWNER_PATH env var)")
+	if err := viper.BindPFlag(codeowners, rootCmd.PersistentFlags().Lookup(codeowners)); err != nil {
+		log.Fatal("error binding viper for flag CODEOWNER_PATH")
 	}
 }
 
