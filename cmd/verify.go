@@ -10,8 +10,8 @@ import (
 
 // checkCmd represents the check command
 var (
-	checkCmd = &cobra.Command{
-		Use:   "check path",
+	verifyCmd = &cobra.Command{
+		Use:   "verify path",
 		Short: "A brief description of your command",
 		Long: `A longer description that spans multiple lines and likely contains examples
 	and usage of using your command. For example:
@@ -29,7 +29,7 @@ var (
 				log.Infof("Found matching rule on line %d: %s %s", rule.Line, rule.Path, rule.Owners)
 				os.Exit(0)
 			} else {
-				log.Fatalf("Invalid CODEOWNER entry, matched rule from line %d don't have valid owners: %s %s. Check your ignore rules.", rule.Line, rule.Path, rule.Owners)
+				log.Fatalf("Missing CODEOWNER entry, matched rule from line %d don't have valid owners: %s %s. Check your ignore rules.", rule.Line, rule.Path, rule.Owners)
 			}
 		},
 	}
@@ -37,6 +37,6 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(checkCmd)
-	checkCmd.Flags().StringSliceVarP(&ignore, "ignore", "i", []string{}, "Comma separated list of entries to ignore when validating a path E.g: @user1,@group1,@user2")
+	rootCmd.AddCommand(verifyCmd)
+	verifyCmd.Flags().StringSliceVarP(&ignore, "ignore", "i", []string{}, "Comma separated list of entries to ignore when validating a path E.g: @user1,@group1,@user2")
 }
