@@ -29,7 +29,7 @@ var (
 				log.Infof("Found matching rule on line %d: %s %s", rule.Line, rule.Path, rule.Owners)
 				os.Exit(0)
 			} else {
-				log.Fatal("Invalid CODEOWNER entry")
+				log.Fatalf("Invalid CODEOWNER entry, matched rule from line %d don't have valid owners: %s %s. Check your ignore rules.", rule.Line, rule.Path, rule.Owners)
 			}
 		},
 	}
