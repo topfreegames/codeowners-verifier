@@ -17,7 +17,7 @@ type ClientInterface interface {
 type Gitlab struct {
 	Token   string
 	BaseURL string
-	api     ClientInterface
+	Api     ClientInterface
 }
 
 // GitlabClient implements a wrapper for calling the gitlab library
@@ -56,16 +56,16 @@ func (g *Gitlab) Init() error {
 	if g.BaseURL == "" {
 		g.BaseURL = "https://gitlab.com/api/v4"
 	}
-	if g.api == nil {
-		g.api = &GitlabClient{}
+	if g.Api == nil {
+		g.Api = &GitlabClient{}
 	}
-	g.api.NewClient(g.Token, g.BaseURL)
+	g.Api.NewClient(g.Token, g.BaseURL)
 	return nil
 }
 
 // SearchUser searches a user by name
 func (g *Gitlab) UserExists(name string) (bool, error) {
-	users, err := g.api.ListUsers(name)
+	users, err := g.Api.ListUsers(name)
 	if err != nil {
 		return false, err
 	}
@@ -79,7 +79,7 @@ func (g *Gitlab) UserExists(name string) (bool, error) {
 
 // SearchGroup searches a group by name
 func (g *Gitlab) GroupExists(name string) (bool, error) {
-	groups, err := g.api.ListGroups(name)
+	groups, err := g.Api.ListGroups(name)
 	if err != nil {
 		return false, err
 	}

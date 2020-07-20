@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode"
@@ -106,7 +107,7 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 	}
 	valid := true
 	for _, c := range codeowners {
-		if _, err := os.Stat(c.Path); os.IsNotExist(err) {
+		if _, err := filepath.Glob(c.Path); os.IsNotExist(err) {
 			log.Errorf("Error parsing line %d, path %s does not exist", c.Line, c.Path)
 		}
 		for _, element := range c.Owners {

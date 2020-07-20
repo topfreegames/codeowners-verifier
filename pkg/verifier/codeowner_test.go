@@ -6,7 +6,10 @@ import (
 	"testing"
 
 	filet "github.com/Flaque/filet"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/topfreegames/codeowners-verifier/pkg/providers"
+	"github.com/xanzy/go-gitlab"
 )
 
 type TestCase struct {
@@ -386,7 +389,6 @@ func TestVerifyCodeowner(t *testing.T) {
 	}
 }
 
-/*
 func TestValidateCodeownerFileGitlab(t *testing.T) {
 	defer filet.CleanUp(t)
 	/*
@@ -398,20 +400,25 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		./folder2/folder3/
 		./folder2/folder3/file3
 		./file2
-*/
-/*
+	*/
 	folder1 := filet.TmpDir(t, "")
 	folder2 := filet.TmpDir(t, "")
 	folder3 := filet.TmpDir(t, folder2)
-	file1 := filet.TmpFile(t, folder1, "")
-	file2 := filet.TmpFile(t, "", "")
-	file3 := filet.TmpFile(t, folder3, "")
+	//file1 := filet.TmpFile(t, folder1, "")
+	//file2 := filet.TmpFile(t, "", "")
+	//file3 := filet.TmpFile(t, folder3, "")
+	file1 := filet.TmpFile(t, "", `* @user1
+`+folder1+` @user2 @group1
+`+folder1+`/* @user3
+`+folder2+`/** @group1
+`+folder2+`/!`+folder3+` @user1
+non-existent-file @user1`).Name()
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 	validUsers := []string{
-		"user1",
-		"user2",
 		"user3",
+		"user2",
+		"user1",
 	}
 	validGroups := []string{
 		"group1",
@@ -421,14 +428,10 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		{
 			Name: "invalid file",
 			Sample: map[string]interface{}{
-				"Filename": "non-existent-file",
-				"CodeOwners": `* @user1
-` + folder1 + ` @user2 @group1
-` + folder1 + `/* @user3
-` + folder2 + `/** @group1
-` + folder2 + `/!` + folder3 + ` @user1`,
+				"CodeOwners": "non-existent-file",
 				"Provider": &providers.Gitlab{
 					Token: "xxx",
+					Api:   MockGitlabClient,
 				},
 			},
 			Expected: ReturnWithError{
@@ -439,10 +442,10 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		{
 			Name: "missing path",
 			Sample: map[string]interface{}{
-				"Path": "missing-folder",
-
+				"CodeOwners": file1,
 				"Provider": &providers.Gitlab{
 					Token: "xxx",
+					Api:   MockGitlabClient,
 				},
 			},
 			Expected: ReturnWithError{
@@ -456,18 +459,21 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		defer filet.CleanUp(t)
 		expected := test.Expected.(ReturnWithError)
 		sample := test.Sample.(map[string]interface{})
-
-		if sample["Contents"].(string) != "" {
-			filet.File(t, sample["Filename"].(string), sample["Contents"].(string))
+		for _, user := range validUsers {
+			MockGitlabClient.EXPECT().ListUsers(user).Return([]*gitlab.User{{Username: user}}, nil)
 		}
-		val, err := ValidateCodeownerFile(sample["Provider"].(providers.Provider), sample["Filename"].(string))
+		for _, group := range validGroups {
+			// As we can't differentiate groups from users, all groups will be searched on the ListUsers
+			MockGitlabClient.EXPECT().ListUsers(group).Return([]*gitlab.User{}, nil)
+			MockGitlabClient.EXPECT().ListGroups(group).Return([]*gitlab.Group{{Name: group}}, nil)
+		}
+		val, err := ValidateCodeownerFile(sample["Provider"].(providers.Provider), sample["CodeOwners"].(string))
 		if expected.Error {
 			assert.Error(t, err, "should return an error")
-			assert.Equal(t, true, val, "return should be false on error")
+			assert.Equal(t, false, val, "return should be false on error")
 		} else {
 			assert.Nil(t, err, "should not return error")
 			assert.Equal(t, expected.Value.([]*CodeOwner), val, "decoded value should match expected")
 		}
 	}
 }
-*/

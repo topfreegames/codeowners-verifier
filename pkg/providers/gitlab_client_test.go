@@ -16,10 +16,10 @@ func TestNewClientSucessful(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().NewClient(client.Token, client.BaseURL).Times(1)
-	client.api.NewClient(client.Token, client.BaseURL)
+	client.Api.NewClient(client.Token, client.BaseURL)
 }
 
 func TestInitSucessful(t *testing.T) {
@@ -29,7 +29,7 @@ func TestInitSucessful(t *testing.T) {
 	client := &Gitlab{
 		Token:   "Token",
 		BaseURL: "BaseURL",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().NewClient(client.Token, client.BaseURL).Times(1)
 	assert.Equal(t, nil, client.Init())
@@ -45,7 +45,7 @@ func TestEmptyBaseURL(t *testing.T) {
 		Token: "token",
 	}
 	assert.Equal(t, nil, client.Init())
-	assert.Equal(t, "https://gitlab.com/api/v4", client.BaseURL)
+	assert.Equal(t, "https://gitlab.com/Api/v4", client.BaseURL)
 }
 
 func TestListUsersSuccess(t *testing.T) {
@@ -61,10 +61,10 @@ func TestListUsersSuccess(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return(gitlabUsers, nil).Times(1)
-	user, err := client.api.ListUsers(username)
+	user, err := client.Api.ListUsers(username)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, username, user[0].Username)
 }
@@ -76,10 +76,10 @@ func TestListUsersFailure(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return([]*gitlab.User{}, fmt.Errorf("Error searching for user %s:", username)).Times(1)
-	user, err := client.api.ListUsers(username)
+	user, err := client.Api.ListUsers(username)
 	assert.Error(t, err, fmt.Errorf("Error searching for user %s:", username))
 	assert.Equal(t, []*gitlab.User{}, user)
 }
@@ -97,7 +97,7 @@ func TestSearchUserSuccess(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return(gitlabUsers, nil).Times(1)
 	valid, err := client.UserExists(username)
@@ -112,7 +112,7 @@ func TestSearchUserFailure(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return([]*gitlab.User{}, fmt.Errorf("Error searching for user %s:", username)).Times(1)
 	valid, err := client.UserExists(username)
@@ -127,7 +127,7 @@ func TestSearchUserNotFound(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return([]*gitlab.User{}, nil).Times(1)
 	valid, err := client.UserExists(username)
@@ -150,7 +150,7 @@ func TestSearchUserMultipleUsers(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return(gitlabUsers, nil).Times(1)
 	valid, err := client.UserExists(username)
@@ -170,7 +170,7 @@ func TestSearchGroupSuccess(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListGroups(groupName).Return(gitlabGroups, nil).Times(1)
 	valid, err := client.GroupExists(groupName)
@@ -185,7 +185,7 @@ func TestSearchGroupFailure(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListGroups(groupName).Return([]*gitlab.Group{}, fmt.Errorf("Error searching for group %s", groupName)).Times(1)
 	valid, err := client.GroupExists(groupName)
@@ -200,7 +200,7 @@ func TestSearchGroupNotFound(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListGroups(groupName).Return([]*gitlab.Group{}, nil).Times(1)
 	valid, err := client.GroupExists(groupName)
@@ -223,7 +223,7 @@ func TestSearchGroupMultipleGroups(t *testing.T) {
 	client := &Gitlab{
 		Token:   "example_token",
 		BaseURL: "example_url",
-		api:     MockGitlabClient,
+		Api:     MockGitlabClient,
 	}
 	MockGitlabClient.EXPECT().ListGroups(groupName).Return(gitlabGroups, nil).Times(1)
 	valid, err := client.GroupExists(groupName)
