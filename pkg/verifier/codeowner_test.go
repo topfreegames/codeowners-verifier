@@ -267,7 +267,7 @@ folder2/ @user2
 	}
 }
 
-func TestCheckCodeowner(t *testing.T) {
+func TestVerifyCodeowner(t *testing.T) {
 	codeowners := []*CodeOwner{
 		{
 			Path:   "*",
@@ -379,7 +379,7 @@ func TestCheckCodeowner(t *testing.T) {
 		t.Logf("Test case %d: %s", i, test.Name)
 		sample := test.Sample.(map[string]interface{})
 		expected := test.Expected.(map[string]interface{})
-		entry, valid := CheckCodeowner(sample["CodeOwners"].([]*CodeOwner), sample["File"].(string), sample["Ignore"].([]string))
+		entry, valid := VerifyCodeowner(sample["CodeOwners"].([]*CodeOwner), sample["File"].(string), sample["Ignore"].([]string))
 
 		assert.Equal(t, expected["Codeowners"].(*CodeOwner), entry)
 		assert.Equal(t, expected["Valid"].(bool), valid)

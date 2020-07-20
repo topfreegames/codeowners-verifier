@@ -24,7 +24,7 @@ var (
 			if err != nil {
 				log.Fatalf("Couldn't read CODEOWNERS file: %s", err)
 			}
-			rule, valid := verifier.CheckCodeowner(co, args[0], ignore)
+			rule, valid := verifier.VerifyCodeowner(co, args[0], ignore)
 			if valid {
 				log.Infof("Found matching rule on line %d: %s %s", rule.Line, rule.Path, rule.Owners)
 				os.Exit(0)

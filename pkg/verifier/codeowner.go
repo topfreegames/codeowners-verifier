@@ -200,8 +200,8 @@ func (co *CodeOwner) MatchesPath(f string) bool {
 	return matchesPath
 }
 
-// CheckCodeowner check if a line matches any entry on the reversed list of CodeOwners
-func CheckCodeowner(codeowners []*CodeOwner, filename string, ignore []string) (*CodeOwner, bool) {
+// VerifyCodeowner check if a line matches any entry on the reversed list of CodeOwners
+func VerifyCodeowner(codeowners []*CodeOwner, filename string, ignore []string) (*CodeOwner, bool) {
 	for _, c := range reverseCodeOwners(codeowners) {
 		match := c.MatchesPath(filename)
 		if match {
