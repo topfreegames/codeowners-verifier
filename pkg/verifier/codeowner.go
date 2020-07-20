@@ -209,5 +209,5 @@ func CheckCodeowner(codeowners []*CodeOwner, filename string, ignore []string) (
 			return c, len(owners) > 0
 		}
 	}
-	return nil, false
+	return &CodeOwner{}, false
 }
