@@ -1,6 +1,7 @@
 package verifier
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 	"testing"
@@ -268,13 +269,114 @@ folder2/ @user2
 	}
 }
 
-func TestValidateCodeownerFileGitlab(t *testing.T) {
-	directoryTree := []string{
-		"folder1",
-		"folder2/subfolder1",
-		"file1",
+func TestCheckCodeowner(t *testing.T) {
+	codeowners := []*CodeOwner{
+		{
+			Path:   "*",
+			Regex:  regexp.MustCompile("^(|.*/)([^/]*)(|/.*)$"),
+			Negate: false,
+			Owners: []string{
+				"@user1",
+				"@user2",
+			},
+			Line: 1,
+		},
+		{
+			Path:   "folder1",
+			Regex:  regexp.MustCompile("^(|.*/)folder1(|/.*)$"),
+			Negate: false,
+			Owners: []string{
+				"@group1",
+			},
+			Line: 2,
+		},
+		{
+			Path:   "folder2/",
+			Regex:  regexp.MustCompile("^(|.*/)folder2/(|.*)$"),
+			Negate: false,
+			Owners: []string{
+				"@group1",
+			},
+			Line: 3,
+		},
+		{
+			Path:   "folder2/*",
+			Regex:  regexp.MustCompile("^(|.*/)folder2/([^/]*)(|/.*)$"),
+			Negate: false,
+			Owners: []string{
+				"@group2",
+			},
+			Line: 4,
+		},
+		{
+			Path:   "!file1",
+			Regex:  regexp.MustCompile("^(|.*/)file1(|/.*)$"),
+			Negate: true,
+			Owners: []string{
+				"@user3",
+			},
+			Line: 5,
+		},
+		{
+			Path:   "folder1/*.tf",
+			Regex:  regexp.MustCompile(`^(|/)folder1/([^/]*)\.tf(|/.*)$`),
+			Negate: false,
+			Owners: []string{
+				"@user4",
+			},
+			Line: 6,
+		},
+		{
+			Path:   "/**/",
+			Regex:  regexp.MustCompile("^(|.*/)(|.*/)(|/.*)$"),
+			Negate: false,
+			Owners: []string{
+				"@group1",
+			},
+			Line: 7,
+		},
 	}
-
+	tests := []TestCase{
+		{
+			Name: "Checking covered file on CODEOWNERS - no ignores",
+			Sample: map[string]interface{}{
+				"CodeOwners": codeowners,
+				"File":       "file2",
+				"Ignore":     []string{},
+			},
+			Expected: map[string]interface{}{
+				"CodeOwnerEntry": codeowners[0],
+				"Valid":          true,
+			},
+		},
+		{
+			Name: "Checking covered file on empty CODEOWNERS",
+			Sample: map[string]interface{}{
+				"CodeOwners": []*CodeOwner{},
+				"File":       "",
+				"Ignore":     []string{},
+			},
+			Expected: map[string]interface{}{
+				"CodeOwnerEntry": CodeOwner{},
+				"Valid":          false,
+			},
+		},
+	}
+	for i, test := range tests {
+		t.Logf("Test case %d: %s", i, test.Name)
+		sample := test.Sample.(map[string]interface{})
+		expected := test.Expected.(map[string]interface{})
+		entry, err := CheckCodeowner(sample["CodeOwners"].([]*CodeOwner), sample["File"].(string), sample["Ignore"].([]string))
+		assert.Nil(t, entry, "testing")
+		assert.Equal(t, expected["Valid"].(bool), err)
+	}
+}
+func TestValidateCodeownerFileGitlab(t *testing.T) {
+	defer filet.CleanUp(t)
+	folder1 := filet.TmpDir(t, "folder1")
+	folder2 := filet.TmpDir(t, "folder2")
+	fmt.Println(folder1)
+	fmt.Println(folder2)
 	tests := []TestCase{
 		{
 			Name: "invalid file",
