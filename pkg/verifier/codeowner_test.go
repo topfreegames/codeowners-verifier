@@ -18,7 +18,7 @@ type ReturnWithError struct {
 }
 
 func TestReverseCodeOwners(t *testing.T) {
-	codeOwnerEntries := []CodeOwner{
+	codeOwnerEntries := []*CodeOwner{
 		{
 			Path:   "*",
 			Regex:  nil,
@@ -34,7 +34,7 @@ func TestReverseCodeOwners(t *testing.T) {
 			Negate: false,
 		},
 	}
-	reversedCodeOwnerEntries := []CodeOwner{
+	reversedCodeOwnerEntries := []*CodeOwner{
 		{
 			Path:   "path/to/file",
 			Regex:  nil,
@@ -50,7 +50,7 @@ func TestReverseCodeOwners(t *testing.T) {
 			Negate: false,
 		},
 	}
-	emptyCodeOwner := []CodeOwner{}
+	emptyCodeOwner := []*CodeOwner{}
 	tests := []TestCase{
 		{
 			Name:     "Reversing CODEOWNERS file",
@@ -67,18 +67,119 @@ func TestReverseCodeOwners(t *testing.T) {
 	for i, test := range tests {
 		t.Logf("Test case %d: %s", i, test.Name)
 		result := reverseCodeOwners(test.Sample.([]*CodeOwner))
-		assert.Equal(t, test.Expected, result)
+		assert.Equal(t, test.Expected.([]*CodeOwner), result)
+	}
+}
+
+func TestStripComment(t *testing.T) {
+	tests := []TestCase{
+		{
+			Name:     "Checking line with #",
+			Sample:   "#testing",
+			Expected: "",
+		},
+		{
+			Name:     "Checking line section []",
+			Sample:   "[SectionThatShouldBeSanitized]",
+			Expected: "",
+		},
+		{
+			Name:     "Checking valid line",
+			Sample:   "* @test",
+			Expected: "* @test",
+		},
+	}
+
+	for i, test := range tests {
+		t.Logf("Test case %d: %s", i, test.Name)
+		result := stripComment(test.Sample.(string))
+		assert.Equal(t, test.Expected.(string), result)
 	}
 }
 
 func TestCodeOwnerReadFile(t *testing.T) {
+	directory := []string{
+		"folder1",
+		"folder1/subfolder1",
+		"folder2/file2",
+		"folder2/subfolder2/file3",
+	}
 	tests := []TestCase{
 		{
-			Name:   "invalid file",
-			Sample: "invalid-file",
+			Name: "invalid file",
+			Sample: map[string]interface{}{
+				"Filename": "non-existent-file",
+				"Contents": "",
+				"Members":  []string{},
+			},
 			Expected: ReturnWithError{
 				Value: nil,
 				Error: true,
+			},
+		},
+		{
+			Name: "valid codeowners",
+			Sample: map[string]interface{}{
+				"Filename": "valid-codeowners",
+				"Contents": `
+* @user1 @user2
+folder1 @group1
+folder2/ @group1
+folder2/* @group2
+!file1 @user3
+`,
+				"Members": []string{},
+			},
+			Expected: ReturnWithError{
+				Value: []*CodeOwner{
+					{
+						Path:   "*",
+						Regex:  nil,
+						Negate: false,
+						Owners: []string{
+							"@user1",
+							"@user2",
+						},
+						Line: 1,
+					},
+					{
+						Path:   "folder1",
+						Regex:  nil,
+						Negate: false,
+						Owners: []string{
+							"@group1",
+						},
+						Line: 2,
+					},
+					{
+						Path:   "folder2/",
+						Regex:  nil,
+						Negate: false,
+						Owners: []string{
+							"@group1",
+						},
+						Line: 3,
+					},
+					{
+						Path:   "folder2/*",
+						Regex:  nil,
+						Negate: false,
+						Owners: []string{
+							"@group2",
+						},
+						Line: 4,
+					},
+					{
+						Path:   "*",
+						Regex:  nil,
+						Negate: true,
+						Owners: []string{
+							"@user3",
+						},
+						Line: 5,
+					},
+				},
+				Error: false,
 			},
 		},
 	}
