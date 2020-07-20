@@ -1,8 +1,8 @@
 package verifier
 
 import (
-	"fmt"
 	"regexp"
+	"sort"
 	"testing"
 
 	filet "github.com/Flaque/filet"
@@ -103,12 +103,36 @@ func TestStripComment(t *testing.T) {
 func TestDifference(t *testing.T) {
 	tests := []TestCase{
 		{
-			Name:     "Checking 2 identical slices",
-			Sample:   []string{"a", "b", "c", "d"},
-			Expected: "",
+			Name: "Checking Difference with 2 identical slices",
+			Sample: map[string]interface{}{
+				"array1": []string{"a", "b", "c", "d"},
+				"array2": []string{"a", "b", "c", "d"},
+			},
+			Expected: []string{},
+		},
+		{
+			Name: "Checking Difference with 2 slightly different slices",
+			Sample: map[string]interface{}{
+				"array1": []string{"a", "b", "c", "d"},
+				"array2": []string{"c", "d", "e", "f"},
+			},
+			Expected: []string{"a", "b", "e", "f"},
+		},
+		{
+			Name: "Checking Difference with 2 completely different slices",
+			Sample: map[string]interface{}{
+				"array1": []string{"a", "b", "c", "d"},
+				"array2": []string{"e", "f", "g", "h"},
+			},
+			Expected: []string{"a", "b", "c", "d", "e", "f", "g", "h"},
 		},
 	}
-	fmt.Print(tests)
+	for i, test := range tests {
+		t.Logf("Test case %d: %s", i, test.Name)
+		result := difference(test.Sample.(map[string]interface{})["array1"].([]string), test.Sample.(map[string]interface{})["array2"].([]string))
+		sort.Strings(result)
+		assert.Equal(t, test.Expected.([]string), result)
+	}
 }
 
 func TestCodeOwnerReadFile(t *testing.T) {
