@@ -1,12 +1,12 @@
 package verifier
 
 import (
-	"fmt"
 	"regexp"
 	"sort"
 	"testing"
 
 	filet "github.com/Flaque/filet"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/topfreegames/codeowners-verifier/pkg/providers"
 )
@@ -373,24 +373,57 @@ func TestCheckCodeowner(t *testing.T) {
 }
 func TestValidateCodeownerFileGitlab(t *testing.T) {
 	defer filet.CleanUp(t)
+	/*
+		Directory Tree created for tests
+		./
+		./folder1
+		./folder1/file1
+		./folder2
+		./folder2/folder3/
+		./folder2/folder3/file3
+		./file2
+	*/
 	folder1 := filet.TmpDir(t, "")
 	folder2 := filet.TmpDir(t, "")
 	folder3 := filet.TmpDir(t, folder2)
 	file1 := filet.TmpFile(t, folder1, "")
 	file2 := filet.TmpFile(t, "", "")
 	file3 := filet.TmpFile(t, folder3, "")
-	fmt.Println(folder1)
-	fmt.Println(folder2)
-	fmt.Println(folder3)
-	fmt.Println(file1)
-	fmt.Println(file2)
-	fmt.Println(file3)
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	validUsers := []string{
+		"user1",
+		"user2",
+		"user3",
+	}
+	validGroups := []string{
+		"group1",
+	}
+	MockGitlabClient := providers.NewMockClientInterface(mockCtrl)
 	tests := []TestCase{
 		{
 			Name: "invalid file",
 			Sample: map[string]interface{}{
 				"Filename": "non-existent-file",
-				"Contents": "",
+				"CodeOwners": `* @user1
+` + folder1 + ` @user2 @group1
+` + folder1 + `/* @user3
+` + folder2 + `/** @group1
+` + folder2 + `/!` + folder3 + ` @user1`,
+				"Provider": &providers.Gitlab{
+					Token: "xxx",
+				},
+			},
+			Expected: ReturnWithError{
+				Value: false,
+				Error: true,
+			},
+		},
+		{
+			Name: "missing path",
+			Sample: map[string]interface{}{
+				"Path": "missing-folder",
+
 				"Provider": &providers.Gitlab{
 					Token: "xxx",
 				},
