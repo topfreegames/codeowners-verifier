@@ -338,37 +338,60 @@ func TestCheckCodeowner(t *testing.T) {
 	}
 	tests := []TestCase{
 		{
+			Name: "Checking file on empty CODEOWNERS",
+			Sample: map[string]interface{}{
+				"CodeOwners": []*CodeOwner{},
+				"File":       "",
+				"Ignore":     []string{},
+			},
+			Expected: ReturnWithError{
+				Value: nil,
+				Error: true,
+			},
+		},
+		{
 			Name: "Checking covered file on CODEOWNERS - no ignores",
 			Sample: map[string]interface{}{
 				"CodeOwners": codeowners,
 				"File":       "file2",
 				"Ignore":     []string{},
 			},
-			Expected: map[string]interface{}{
-				"CodeOwnerEntry": codeowners[0],
-				"Valid":          true,
+			Expected: ReturnWithError{
+				Value: codeowners[0],
+				Error: false,
 			},
 		},
 		{
-			Name: "Checking covered file on empty CODEOWNERS",
+			Name: "Checking covered file on CODEOWNERS - with ignores",
 			Sample: map[string]interface{}{
-				"CodeOwners": []*CodeOwner{},
-				"File":       "",
-				"Ignore":     []string{},
+				"CodeOwners": codeowners,
+				"File":       "file2",
+				"Ignore": []string{
+					"@user1",
+					"@user2",
+				},
 			},
-			Expected: map[string]interface{}{
-				"CodeOwnerEntry": CodeOwner{},
-				"Valid":          false,
+			Expected: ReturnWithError{
+				Value: codeowners[0],
+				Error: true,
 			},
 		},
 	}
 	for i, test := range tests {
 		t.Logf("Test case %d: %s", i, test.Name)
 		sample := test.Sample.(map[string]interface{})
-		expected := test.Expected.(map[string]interface{})
-		entry, err := CheckCodeowner(sample["CodeOwners"].([]*CodeOwner), sample["File"].(string), sample["Ignore"].([]string))
-		assert.Nil(t, entry, "testing")
-		assert.Equal(t, expected["Valid"].(bool), err)
+		expected := test.Expected.(ReturnWithError)
+		entry, valid := CheckCodeowner(sample["CodeOwners"].([]*CodeOwner), sample["File"].(string), sample["Ignore"].([]string))
+		if expected.Error && expected.Value == nil {
+			assert.Nil(t, entry, "should be nil on empty codeowners file")
+			assert.False(t, valid, "should be false on empty codeowners file")
+		} else if expected.Error && expected.Value != nil {
+			assert.Equal(t, expected.Value.(*CodeOwner), entry, "should find a rule on a non-empty codeowners, even with ignore rules")
+			assert.False(t, valid, "should be false since there wasn't a valid entry when consiering ignore rules")
+		} else {
+			assert.Equal(t, expected.Value.(*CodeOwner), entry, "should match the same rule after checking has benn done")
+			assert.True(t, valid, "should be true if after checking (and following ignore rules) there is a matching rule")
+		}
 	}
 }
 func TestValidateCodeownerFileGitlab(t *testing.T) {
