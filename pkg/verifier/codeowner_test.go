@@ -7,6 +7,7 @@ import (
 
 	filet "github.com/Flaque/filet"
 	"github.com/stretchr/testify/assert"
+	"github.com/topfreegames/codeowners-verifier/pkg/providers"
 )
 
 type TestCase struct {
@@ -260,6 +261,49 @@ folder2/ @user2
 		if expected.Error {
 			assert.Error(t, err, "should return an error")
 			assert.Nil(t, val, "return should be nil on error")
+		} else {
+			assert.Nil(t, err, "should not return error")
+			assert.Equal(t, expected.Value.([]*CodeOwner), val, "decoded value should match expected")
+		}
+	}
+}
+
+func TestValidateCodeownerFileGitlab(t *testing.T) {
+	directoryTree := []string{
+		"folder1",
+		"folder2/subfolder1",
+		"file1",
+	}
+
+	tests := []TestCase{
+		{
+			Name: "invalid file",
+			Sample: map[string]interface{}{
+				"Filename": "non-existent-file",
+				"Contents": "",
+				"Provider": &providers.Gitlab{
+					Token: "xxx",
+				},
+			},
+			Expected: ReturnWithError{
+				Value: false,
+				Error: true,
+			},
+		},
+	}
+	for i, test := range tests {
+		t.Logf("Test case %d: %s", i, test.Name)
+		defer filet.CleanUp(t)
+		expected := test.Expected.(ReturnWithError)
+		sample := test.Sample.(map[string]interface{})
+
+		if sample["Contents"].(string) != "" {
+			filet.File(t, sample["Filename"].(string), sample["Contents"].(string))
+		}
+		val, err := ValidateCodeownerFile(sample["Provider"].(providers.Provider), sample["Filename"].(string))
+		if expected.Error {
+			assert.Error(t, err, "should return an error")
+			assert.Equal(t, false, val, "return should be false on error")
 		} else {
 			assert.Nil(t, err, "should not return error")
 			assert.Equal(t, expected.Value.([]*CodeOwner), val, "decoded value should match expected")
