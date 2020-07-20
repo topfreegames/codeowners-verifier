@@ -132,7 +132,9 @@ func TestCodeOwnerReadFile(t *testing.T) {
 folder1 @group1
 folder2/ @group1
 folder2/* @group2
-!file1 @user3`,
+!file1 @user3
+folder1/*.tf @user4
+/**/ @group1`,
 			},
 			Expected: ReturnWithError{
 				Value: []*CodeOwner{
@@ -181,6 +183,24 @@ folder2/* @group2
 							"@user3",
 						},
 						Line: 5,
+					},
+					{
+						Path:   "folder1/*.tf",
+						Regex:  regexp.MustCompile(`^(|/)folder1/([^/]*)\.tf(|/.*)$`),
+						Negate: false,
+						Owners: []string{
+							"@user4",
+						},
+						Line: 6,
+					},
+					{
+						Path:   "/**/",
+						Regex:  regexp.MustCompile("^(|.*/)(|.*/)(|/.*)$"),
+						Negate: false,
+						Owners: []string{
+							"@group1",
+						},
+						Line: 7,
 					},
 				},
 				Error: false,

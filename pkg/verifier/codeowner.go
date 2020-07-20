@@ -93,9 +93,6 @@ func ReadCodeownersFile(filename string) ([]*CodeOwner, error) {
 		}
 		lineNumber++
 	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("Error parsing CODEOWNERS file: %s", err)
-	}
 	return codeowners, nil
 }
 
@@ -137,12 +134,6 @@ func getPatternFromLine(lineNumber string) (*regexp.Regexp, bool) {
 	negatePattern := false
 	if lineNumber[0] == '!' {
 		negatePattern = true
-		lineNumber = lineNumber[1:]
-	}
-
-	// Handle [Rule 2, 4], when # or ! is escaped with a \
-	// Handle [Rule 4] once we tag negatePattern, strip the leading ! char
-	if regexp.MustCompile(`^(\#|\!)`).MatchString(lineNumber) {
 		lineNumber = lineNumber[1:]
 	}
 
