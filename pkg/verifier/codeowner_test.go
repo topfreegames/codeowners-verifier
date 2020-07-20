@@ -373,10 +373,18 @@ func TestCheckCodeowner(t *testing.T) {
 }
 func TestValidateCodeownerFileGitlab(t *testing.T) {
 	defer filet.CleanUp(t)
-	folder1 := filet.TmpDir(t, "folder1")
-	folder2 := filet.TmpDir(t, "folder2")
+	folder1 := filet.TmpDir(t, "")
+	folder2 := filet.TmpDir(t, "")
+	folder3 := filet.TmpDir(t, folder2)
+	file1 := filet.TmpFile(t, folder1, "")
+	file2 := filet.TmpFile(t, "", "")
+	file3 := filet.TmpFile(t, folder3, "")
 	fmt.Println(folder1)
 	fmt.Println(folder2)
+	fmt.Println(folder3)
+	fmt.Println(file1)
+	fmt.Println(file2)
+	fmt.Println(file3)
 	tests := []TestCase{
 		{
 			Name: "invalid file",
@@ -405,7 +413,7 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		val, err := ValidateCodeownerFile(sample["Provider"].(providers.Provider), sample["Filename"].(string))
 		if expected.Error {
 			assert.Error(t, err, "should return an error")
-			assert.Equal(t, false, val, "return should be false on error")
+			assert.Equal(t, true, val, "return should be false on error")
 		} else {
 			assert.Nil(t, err, "should not return error")
 			assert.Equal(t, expected.Value.([]*CodeOwner), val, "decoded value should match expected")
