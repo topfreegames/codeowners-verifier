@@ -193,9 +193,6 @@ func (co *CodeOwner) MatchesPath(f string) bool {
 		// If this is a regular target (not negated with a gitignore exclude "!" etc)
 		if !co.Negate {
 			matchesPath = true
-		} else if matchesPath {
-			// Negated pattern, and matchesPath is already set
-			matchesPath = false
 		}
 	}
 	return matchesPath
