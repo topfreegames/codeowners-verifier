@@ -3,6 +3,7 @@ module github.com/topfreegames/codeowners-verifier
 go 1.14
 
 require (
+	github.com/Flaque/filet v0.0.0-20190209224823-fc4d33cfcf93
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.4.2 // indirect

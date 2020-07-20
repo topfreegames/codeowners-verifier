@@ -1,8 +1,11 @@
 package verifier
 
 import (
+	"fmt"
+	"regexp"
 	"testing"
 
+	filet "github.com/Flaque/filet"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -97,20 +100,24 @@ func TestStripComment(t *testing.T) {
 	}
 }
 
-func TestCodeOwnerReadFile(t *testing.T) {
-	directory := []string{
-		"folder1",
-		"folder1/subfolder1",
-		"folder2/file2",
-		"folder2/subfolder2/file3",
+func TestDifference(t *testing.T) {
+	tests := []TestCase{
+		{
+			Name:     "Checking 2 identical slices",
+			Sample:   []string{"a", "b", "c", "d"},
+			Expected: "",
+		},
 	}
+	fmt.Print(tests)
+}
+
+func TestCodeOwnerReadFile(t *testing.T) {
 	tests := []TestCase{
 		{
 			Name: "invalid file",
 			Sample: map[string]interface{}{
 				"Filename": "non-existent-file",
 				"Contents": "",
-				"Members":  []string{},
 			},
 			Expected: ReturnWithError{
 				Value: nil,
@@ -121,20 +128,17 @@ func TestCodeOwnerReadFile(t *testing.T) {
 			Name: "valid codeowners",
 			Sample: map[string]interface{}{
 				"Filename": "valid-codeowners",
-				"Contents": `
-* @user1 @user2
+				"Contents": `* @user1 @user2
 folder1 @group1
 folder2/ @group1
 folder2/* @group2
-!file1 @user3
-`,
-				"Members": []string{},
+!file1 @user3`,
 			},
 			Expected: ReturnWithError{
 				Value: []*CodeOwner{
 					{
 						Path:   "*",
-						Regex:  nil,
+						Regex:  regexp.MustCompile("^(|.*/)([^/]*)(|/.*)$"),
 						Negate: false,
 						Owners: []string{
 							"@user1",
@@ -144,7 +148,7 @@ folder2/* @group2
 					},
 					{
 						Path:   "folder1",
-						Regex:  nil,
+						Regex:  regexp.MustCompile("^(|.*/)folder1(|/.*)$"),
 						Negate: false,
 						Owners: []string{
 							"@group1",
@@ -153,7 +157,7 @@ folder2/* @group2
 					},
 					{
 						Path:   "folder2/",
-						Regex:  nil,
+						Regex:  regexp.MustCompile("^(|.*/)folder2/(|.*)$"),
 						Negate: false,
 						Owners: []string{
 							"@group1",
@@ -162,7 +166,7 @@ folder2/* @group2
 					},
 					{
 						Path:   "folder2/*",
-						Regex:  nil,
+						Regex:  regexp.MustCompile("^(|.*/)folder2/([^/]*)(|/.*)$"),
 						Negate: false,
 						Owners: []string{
 							"@group2",
@@ -170,8 +174,8 @@ folder2/* @group2
 						Line: 4,
 					},
 					{
-						Path:   "*",
-						Regex:  nil,
+						Path:   "!file1",
+						Regex:  regexp.MustCompile("^(|.*/)file1(|/.*)$"),
 						Negate: true,
 						Owners: []string{
 							"@user3",
@@ -182,22 +186,39 @@ folder2/* @group2
 				Error: false,
 			},
 		},
+		{
+			Name: "invalid codeowners entry",
+			Sample: map[string]interface{}{
+				"Filename": "valid-codeowners",
+				"Contents": `*
+folder1
+folder2/
+folder2/ @user2
+!file1 @user3`,
+			},
+			Expected: ReturnWithError{
+				Value: nil,
+				Error: true,
+			},
+		},
 	}
 
 	for i, test := range tests {
 		t.Logf("Test case %d: %s", i, test.Name)
-
+		defer filet.CleanUp(t)
 		expected := test.Expected.(ReturnWithError)
-		sample := test.Sample.(string)
+		sample := test.Sample.(map[string]interface{})
 
-		val, err := ReadCodeownersFile(sample)
-
+		if sample["Contents"].(string) != "" {
+			filet.File(t, sample["Filename"].(string), sample["Contents"].(string))
+		}
+		val, err := ReadCodeownersFile(sample["Filename"].(string))
 		if expected.Error {
 			assert.Error(t, err, "should return an error")
 			assert.Nil(t, val, "return should be nil on error")
 		} else {
 			assert.Nil(t, err, "should not return error")
-			assert.Equal(t, expected.Value.([]map[string]interface{}), val, "decoded value should match expected")
+			assert.Equal(t, expected.Value.([]*CodeOwner), val, "decoded value should match expected")
 		}
 	}
 }
