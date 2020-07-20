@@ -267,6 +267,72 @@ folder2/ @user2
 	}
 }
 
+func TestMatchesPath(t *testing.T) {
+	codeowners := []*CodeOwner{
+		{
+			Path:   "*",
+			Regex:  regexp.MustCompile("^(|.*/)([^/]*)(|/.*)$"),
+			Negate: false,
+			Owners: []string{
+				"@user1",
+				"@user2",
+			},
+			Line: 1,
+		},
+		{
+			Path:   "folder1",
+			Regex:  regexp.MustCompile("^(|.*/)folder1(|/.*)$"),
+			Negate: false,
+			Owners: []string{
+				"@group1",
+			},
+			Line: 2,
+		},
+		{
+			Path:   "!file1",
+			Regex:  regexp.MustCompile("^(|.*/)file1(|/.*)$"),
+			Negate: true,
+			Owners: []string{
+				"@user3",
+			},
+			Line: 3,
+		},
+	}
+	tests := []TestCase{
+		{
+			Name: "Check covered path for given file",
+			Sample: map[string]interface{}{
+				"CodeOwnerEntry": codeowners[0],
+				"File":           "file2",
+			},
+			Expected: true,
+		},
+		{
+			Name: "Check non-covered path for given file",
+			Sample: map[string]interface{}{
+				"CodeOwnerEntry": codeowners[1],
+				"File":           "file2",
+			},
+			Expected: false,
+		},
+		{
+			Name: "Check negated path for given file",
+			Sample: map[string]interface{}{
+				"CodeOwnerEntry": codeowners[2],
+				"File":           "file1",
+			},
+			Expected: false,
+		},
+	}
+
+	for i, test := range tests {
+		t.Logf("Test case %d: %s", i, test.Name)
+		sample := test.Sample.(map[string]interface{})
+		result := sample["CodeOwnerEntry"].(*CodeOwner).MatchesPath(sample["File"].(string))
+		assert.Equal(t, test.Expected, result)
+	}
+}
+
 func TestVerifyCodeowner(t *testing.T) {
 	codeowners := []*CodeOwner{
 		{
