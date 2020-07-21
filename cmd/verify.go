@@ -14,8 +14,8 @@ var (
 		Use:   "verify path",
 		Short: "For a path, check if a CODEOWNER entry rule apples, excluding member from the ignore flag",
 		Long: `For a given path, goes through the CODEONWERS file trying to find a rule that matches the path,
-		Also, you can specify a list of members to ignore with the flag -i or --ignore. Example:
-		codeowners-verifier verify folder1 --ignore @user1 --ignore @group1`,
+Also, you can specify a list of members to ignore with the flag -i or --ignore. Example:
+codeowners-verifier verify folder1 --ignore @user1 --ignore @group1`,
 		Run: func(cmd *cobra.Command, args []string) {
 			co, err := verifier.ReadCodeownersFile(cmd.Flag(codeowners).Value.String())
 			if err != nil {

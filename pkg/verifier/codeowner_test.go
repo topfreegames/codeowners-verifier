@@ -119,7 +119,7 @@ func TestDifference(t *testing.T) {
 				"array1": []string{"a", "b", "c", "d"},
 				"array2": []string{"c", "d", "e", "f"},
 			},
-			Expected: []string{"a", "b", "e", "f"},
+			Expected: []string{"a", "b"},
 		},
 		{
 			Name: "Checking Difference with 2 completely different slices",
@@ -127,7 +127,7 @@ func TestDifference(t *testing.T) {
 				"array1": []string{"a", "b", "c", "d"},
 				"array2": []string{"e", "f", "g", "h"},
 			},
-			Expected: []string{"a", "b", "c", "d", "e", "f", "g", "h"},
+			Expected: []string{"a", "b", "c", "d"},
 		},
 	}
 	for i, test := range tests {
