@@ -23,7 +23,7 @@ A combination of using both flags and environment variables is possible, but kee
 
 :warning: Following how [.gitignore files works](https://git-scm.com/docs/gitignore), we didn't implement the "negate pattern". Github doesn't support it too. :warning:
 
-**There are two verbs available: `help`, `verify` and `validate`.**
+**There are three verbs available: `help`, `verify` and `validate`.**
 
 ### Help
 
