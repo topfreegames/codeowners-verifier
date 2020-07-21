@@ -1,5 +1,7 @@
 package providers
 
+import "fmt"
+
 type Provider interface {
 	Init() error
 	UserExists(username string) (bool, error)
@@ -17,6 +19,8 @@ func InitProvider(provider string, token string, baseURL string) (Provider, erro
 		if err := client.Init(); err != nil {
 			return nil, err
 		}
+	default:
+		return nil, fmt.Errorf("Invalid provider")
 	}
 	return client, nil
 }

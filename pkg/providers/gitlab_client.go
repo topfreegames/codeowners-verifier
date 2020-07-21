@@ -7,6 +7,7 @@ import (
 )
 
 // GitlabClient interface implements the Gitlab Client
+//go:generate mockgen -destination=gitlab_client_mock.go -package=providers github.com/topfreegames/codeowners-verifier/pkg/providers ClientInterface
 type ClientInterface interface {
 	NewClient(Token string, BaseURL string)
 	ListUsers(name string) ([]*gitlab.User, error)
