@@ -7,14 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getProviders() []string {
-	return []string{"gitlab"}
-}
-
 func TestInitProviderSuccess(t *testing.T) {
 	token := "xyz"
 	baseURL := ""
-	for _, p := range getProviders() {
+	for _, p := range ListProviders() {
 		t.Logf("Validating provider %s", p)
 		provider, err := InitProvider(p, token, baseURL)
 		assert.Equal(t, nil, err)
@@ -25,7 +21,7 @@ func TestInitProviderSuccess(t *testing.T) {
 func TestInitProviderError(t *testing.T) {
 	token := ""
 	baseURL := ""
-	for _, p := range getProviders() {
+	for _, p := range ListProviders() {
 		t.Logf("Validating provider %s", p)
 		provider, err := InitProvider(p, token, baseURL)
 		assert.Equal(t, fmt.Errorf("Token can't be empty"), err)

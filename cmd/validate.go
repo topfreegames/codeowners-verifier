@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -13,8 +14,9 @@ import (
 var validateCmd = &cobra.Command{
 	Use:   "validate provider",
 	Short: "Validate the integrity of a CODEOWNERS file",
-	Long:  `Check if every entry on the CODEOWNERS file exists on the provider.`,
-	Args:  cobra.ExactArgs(1),
+	Long: fmt.Sprintf(`Check if every entry on the CODEOWNERS file exists on the provider.
+	valid providers: %v`, providers.ListProviders()),
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		client, err := providers.InitProvider(args[0], cmd.Flag(token).Value.String(), cmd.Flag(baseurl).Value.String())
 		if err != nil {

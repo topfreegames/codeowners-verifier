@@ -8,6 +8,10 @@ type Provider interface {
 	GroupExists(username string) (bool, error)
 }
 
+func ListProviders() []string {
+	return []string{"gitlab"}
+}
+
 func InitProvider(provider string, token string, baseURL string) (Provider, error) {
 	var client Provider
 	switch provider {
