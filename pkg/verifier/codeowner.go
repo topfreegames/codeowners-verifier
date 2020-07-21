@@ -74,6 +74,7 @@ func ReadCodeownersFile(filename string) ([]*CodeOwner, error) {
 	lineNumber := 1
 	for scanner.Scan() {
 		line := stripComment(scanner.Text())
+		line = strings.Join(strings.Fields(line), " ")
 		if line != "" {
 			elements := strings.Split(line, " ")
 			if len(elements) < 2 {
