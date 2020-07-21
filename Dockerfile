@@ -1,4 +1,4 @@
-FROM golang:1.14 as build-helm-generate
+FROM golang:1.14 as build
 
 WORKDIR /src
 
@@ -10,6 +10,6 @@ ADD . /src/
 RUN CGO_ENABLED=0 GOOS=linux make all
 
 FROM alpine:3.11.6
-COPY --from=build-helm-generate /src/build/helm-generate /usr/local/bin
+COPY --from=build /src/build/codeowners-verifier /usr/local/bin
 
-CMD [ "helm-generate", "." ]
+CMD [ "codeowners-verifier", "help" ]
