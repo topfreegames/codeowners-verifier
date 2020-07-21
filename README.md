@@ -1,5 +1,6 @@
 # codeowners-verifier
-Small binary to verify if a path has a CODEOWNER.
+Small binary to validate the CODEOWNERS file and check if a path matches a CODEOWNER entry.
+Useful for using on CI to ensure CODEOWNERS coverage.
 
 
 ## Docker
