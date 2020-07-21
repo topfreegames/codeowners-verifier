@@ -4,10 +4,12 @@ go 1.14
 
 require (
 	github.com/Flaque/filet v0.0.0-20190209224823-fc4d33cfcf93
+	github.com/MichaelTJones/walk v0.0.0-20161122175330-4748e29d5718 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
+	github.com/mgutz/str v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
@@ -26,5 +28,6 @@ require (
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
+	gopkg.in/godo.v2 v2.0.9
 	gopkg.in/ini.v1 v1.57.0 // indirect
 )

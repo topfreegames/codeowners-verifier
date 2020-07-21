@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode"
+
+	glob "gopkg.in/godo.v2/glob"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/topfreegames/codeowners-verifier/pkg/providers"
@@ -107,7 +108,8 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 	}
 	valid := true
 	for _, c := range codeowners {
-		if files, err := filepath.Glob(c.Path); err != nil || len(files) < 1 {
+		// This doesn't works for ! patterns
+		if files, _, err := glob.Glob([]string{c.Path}); err != nil || len(files) < 1 {
 			log.Errorf("Error parsing line %d, path %s does not exist", c.Line, c.Path)
 			valid = false
 		}
