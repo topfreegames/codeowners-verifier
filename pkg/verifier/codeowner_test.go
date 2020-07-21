@@ -463,32 +463,20 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		./folder1
 		./folder1/file1
 		./folder2
+		./folder2/file2
 		./folder2/folder3/
 		./folder2/folder3/file3
-		./file2
+		./file4
 	*/
 	folder1 := filet.TmpDir(t, "")
 	folder2 := filet.TmpDir(t, "")
 	folder3 := filet.TmpDir(t, folder2)
-	//file1 := filet.TmpFile(t, folder1, "")
-	//file2 := filet.TmpFile(t, "", "")
-	//file3 := filet.TmpFile(t, folder3, "")
-	file1 := filet.TmpFile(t, "", `* @user1
-`+folder1+` @user2 @group1
-`+folder1+`/* @user3
-`+folder2+`/** @group1
-`+folder2+`/!`+folder3+` @user1
-non-existent-file @user1`).Name()
+	filet.TmpFile(t, folder1, "")
+	filet.TmpFile(t, folder2, "")
+	file1 := filet.TmpFile(t, folder3, "").Name()
+	filet.TmpFile(t, "", "")
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	validUsers := []string{
-		"user3",
-		"user2",
-		"user1",
-	}
-	validGroups := []string{
-		"group1",
-	}
 	MockGitlabClient := providers.NewMockClientInterface(mockCtrl)
 	tests := []TestCase{
 		{
@@ -506,9 +494,28 @@ non-existent-file @user1`).Name()
 			},
 		},
 		{
-			Name: "missing path",
+			Name: "Correct CodeOwners File",
 			Sample: map[string]interface{}{
-				"CodeOwners": file1,
+				"CodeOwners": filet.TmpFile(t, "", `* @user1
+`+folder1+` @user2 @group1
+`+folder1+`/* @user3
+`+folder2+`/** @group1
+`+folder3+` @user1
+`+file1+` @user1`).Name(),
+				"Provider": &providers.Gitlab{
+					Token: "xxx",
+					Api:   MockGitlabClient,
+				},
+			},
+			Expected: ReturnWithError{
+				Value: true,
+				Error: false,
+			},
+		},
+		{
+			Name: "invalid codeowner entry",
+			Sample: map[string]interface{}{
+				"CodeOwners": filet.TmpFile(t, "", `missing-owner`).Name(),
 				"Provider": &providers.Gitlab{
 					Token: "xxx",
 					Api:   MockGitlabClient,
@@ -519,27 +526,55 @@ non-existent-file @user1`).Name()
 				Error: true,
 			},
 		},
+		{
+			Name: "non-existent path",
+			Sample: map[string]interface{}{
+				"CodeOwners": filet.TmpFile(t, "", `invalid-path @user1`).Name(),
+				"Provider": &providers.Gitlab{
+					Token: "xxx",
+					Api:   MockGitlabClient,
+				},
+			},
+			Expected: ReturnWithError{
+				Value: false,
+				Error: false,
+			},
+		},
+		{
+			Name: "non-existent owner",
+			Sample: map[string]interface{}{
+				"CodeOwners": filet.TmpFile(t, "", folder1+` @user100`).Name(),
+				"Provider": &providers.Gitlab{
+					Token: "xxx",
+					Api:   MockGitlabClient,
+				},
+			},
+			Expected: ReturnWithError{
+				Value: false,
+				Error: false,
+			},
+		},
 	}
 	for i, test := range tests {
 		t.Logf("Test case %d: %s", i, test.Name)
 		defer filet.CleanUp(t)
 		expected := test.Expected.(ReturnWithError)
 		sample := test.Sample.(map[string]interface{})
-		for _, user := range validUsers {
-			MockGitlabClient.EXPECT().ListUsers(user).Return([]*gitlab.User{{Username: user}}, nil)
-		}
-		for _, group := range validGroups {
-			// As we can't differentiate groups from users, all groups will be searched on the ListUsers
-			MockGitlabClient.EXPECT().ListUsers(group).Return([]*gitlab.User{}, nil)
-			MockGitlabClient.EXPECT().ListGroups(group).Return([]*gitlab.Group{{Name: group}}, nil)
-		}
+		// We could improve this logic
+		MockGitlabClient.EXPECT().ListUsers("user1").Return([]*gitlab.User{{Username: "user1"}}, nil).AnyTimes()
+		MockGitlabClient.EXPECT().ListUsers("user2").Return([]*gitlab.User{{Username: "user2"}}, nil).AnyTimes()
+		MockGitlabClient.EXPECT().ListUsers("user3").Return([]*gitlab.User{{Username: "user3"}}, nil).AnyTimes()
+		MockGitlabClient.EXPECT().ListUsers("user100").Return([]*gitlab.User{}, nil).AnyTimes()
+		MockGitlabClient.EXPECT().ListUsers("group1").Return([]*gitlab.User{}, nil).AnyTimes()
+		MockGitlabClient.EXPECT().ListGroups("group1").Return([]*gitlab.Group{{Name: "group1"}}, nil).AnyTimes()
+		MockGitlabClient.EXPECT().ListGroups("user100").Return([]*gitlab.Group{}, nil).AnyTimes()
 		val, err := ValidateCodeownerFile(sample["Provider"].(providers.Provider), sample["CodeOwners"].(string))
 		if expected.Error {
 			assert.Error(t, err, "should return an error")
 			assert.Equal(t, false, val, "return should be false on error")
 		} else {
 			assert.Nil(t, err, "should not return error")
-			assert.Equal(t, expected.Value.([]*CodeOwner), val, "decoded value should match expected")
+			assert.Equal(t, expected.Value.(bool), val, "decoded value should match expected")
 		}
 	}
 }

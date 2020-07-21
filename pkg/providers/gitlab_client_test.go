@@ -45,7 +45,7 @@ func TestEmptyBaseURL(t *testing.T) {
 		Token: "token",
 	}
 	assert.Equal(t, nil, client.Init())
-	assert.Equal(t, "https://gitlab.com/Api/v4", client.BaseURL)
+	assert.Equal(t, "https://gitlab.com/api/v4", client.BaseURL)
 }
 
 func TestListUsersSuccess(t *testing.T) {

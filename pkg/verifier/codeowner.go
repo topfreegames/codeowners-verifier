@@ -107,8 +107,9 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 	}
 	valid := true
 	for _, c := range codeowners {
-		if _, err := filepath.Glob(c.Path); os.IsNotExist(err) {
+		if files, err := filepath.Glob(c.Path); err != nil || len(files) < 1 {
 			log.Errorf("Error parsing line %d, path %s does not exist", c.Line, c.Path)
+			valid = false
 		}
 		for _, element := range c.Owners {
 			owner := strings.Replace(element, "@", "", 1)
