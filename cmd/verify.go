@@ -12,13 +12,10 @@ import (
 var (
 	verifyCmd = &cobra.Command{
 		Use:   "verify path",
-		Short: "A brief description of your command",
-		Long: `A longer description that spans multiple lines and likely contains examples
-	and usage of using your command. For example:
-
-	Cobra is a CLI library for Go that empowers applications.
-	This application is a tool to generate the needed files
-	to quickly create a Cobra application.`,
+		Short: "For a path, check if a CODEOWNER entry rule apples, excluding member from the ignore flag",
+		Long: `For a given path, goes through the CODEONWERS file trying to find a rule that matches the path,
+		Also, you can specify a list of members to ignore with the flag -i or --ignore. Example:
+		codeowners-verifier verify folder1 --ignore @user1 --ignore @group1`,
 		Run: func(cmd *cobra.Command, args []string) {
 			co, err := verifier.ReadCodeownersFile(cmd.Flag(codeowners).Value.String())
 			if err != nil {
