@@ -5,7 +5,7 @@ Useful for using on CI to ensure CODEOWNERS coverage.
 
 ## Docker
 Available at: [Docker Hub](https://hub.docker.com/r/tfgco/codeowners-verifier) and [Quay.io](https://quay.io/repository/tfgco/codeowners-verifier).
-You can change build arguments for GOOS and GOARCH using `--build-arg=linux --build-arg=arm`.
+You can change build arguments for GOOS and GOARCH using `--build-arg GOOS=linux --build-arg GOARCH=arm`.
 
 ## Overview
 
