@@ -2,7 +2,6 @@ package verifier
 
 import (
 	"regexp"
-	"sort"
 	"testing"
 
 	filet "github.com/Flaque/filet"
@@ -111,7 +110,7 @@ func TestDifference(t *testing.T) {
 				"array1": []string{"a", "b", "c", "d"},
 				"array2": []string{"a", "b", "c", "d"},
 			},
-			Expected: []string{},
+			Expected: false,
 		},
 		{
 			Name: "Checking Difference with 2 slightly different slices",
@@ -119,7 +118,7 @@ func TestDifference(t *testing.T) {
 				"array1": []string{"a", "b", "c", "d"},
 				"array2": []string{"c", "d", "e", "f"},
 			},
-			Expected: []string{"a", "b"},
+			Expected: true,
 		},
 		{
 			Name: "Checking Difference with 2 completely different slices",
@@ -127,14 +126,13 @@ func TestDifference(t *testing.T) {
 				"array1": []string{"a", "b", "c", "d"},
 				"array2": []string{"e", "f", "g", "h"},
 			},
-			Expected: []string{"a", "b", "c", "d"},
+			Expected: true,
 		},
 	}
 	for i, test := range tests {
 		t.Logf("Test case %d: %s", i, test.Name)
-		result := difference(test.Sample.(map[string]interface{})["array1"].([]string), test.Sample.(map[string]interface{})["array2"].([]string))
-		sort.Strings(result)
-		assert.Equal(t, test.Expected.([]string), result)
+		result := hasDifference(test.Sample.(map[string]interface{})["array1"].([]string), test.Sample.(map[string]interface{})["array2"].([]string))
+		assert.Equal(t, test.Expected.(bool), result)
 	}
 }
 

@@ -5,14 +5,15 @@ Useful for using on CI to ensure CODEOWNERS coverage.
 
 ## Docker
 Available at: [Docker Hub](https://hub.docker.com/r/tfgco/codeowners-verifier) and [Quay.io](https://quay.io/repository/tfgco/codeowners-verifier).
+You can change build arguments for GOOS and GOARCH using `--build-arg=linux --build-arg=arm`.
 
 ## Overview
 
-codeowners-verifier verifies the entries inside a CODEOWNERS file. At the time being, It only supports Gitlab Code Owners. Although Code Owners works the same way for Gitlab and Github (the same validation checks are done by both), Wildlife's implementation also checks for valid Users and Groups inside a CODEOWNERS file. 
+codeowners-verifier verifies the entries inside a CODEOWNERS file. At the time being, it only supports Gitlab Code Owners. Although CodeOwners works the same way for Gitlab and Github (the same validation checks are done by both), Wildlife's implementation also checks for valid Users and Groups inside a CODEOWNERS file. 
 
 ## Environment Variables
 
-+ `CODEOWNER_PROVIDER_URL`: The URL to the chosen provider. Defaults to *"https://gitlab.com/api/v4"*. 
++ `CODEOWNER_PROVIDER_URL`: The URL to the chosen provider. Each provider will have a default value. 
 + `CODEOWNER_PROVIDER_TOKEN`: Token to authenticate toward the chosen provider. There isn't default.
 + `CODEOWNER_PATH`: Path to the CODEOWNERS file. There isn't a default.
 

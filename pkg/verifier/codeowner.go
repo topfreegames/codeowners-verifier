@@ -42,10 +42,8 @@ func stripComment(source string) string {
 	return source
 }
 
-// difference returns the difference between two slices
-func difference(slice1 []string, slice2 []string) []string {
-	diffStr := []string{}
-
+// hasdifference returns true if there is an element on slice1 that isn't on slice2
+func hasDifference(slice1 []string, slice2 []string) bool {
 	for _, s1Val := range slice1 {
 		found := false
 		for _, s2Val := range slice2 {
@@ -55,10 +53,10 @@ func difference(slice1 []string, slice2 []string) []string {
 			}
 		}
 		if !found {
-			diffStr = append(diffStr, s1Val)
+			return true
 		}
 	}
-	return diffStr
+	return false
 }
 
 // ReadCodeownersFile reads the file specified by filename
@@ -73,20 +71,17 @@ func ReadCodeownersFile(filename string) ([]*CodeOwner, error) {
 	scanner := bufio.NewScanner(file)
 	lineNumber := 1
 	for scanner.Scan() {
-		line := stripComment(scanner.Text())
-		line = strings.Join(strings.Fields(line), " ")
-		if line != "" {
-			elements := strings.Split(line, " ")
-			if len(elements) < 2 {
-				return nil, fmt.Errorf("Invalid CODEOWNERS entry: %d", lineNumber)
-			}
-			regex, negateRegex := getPatternFromLine(elements[0])
+		line := strings.Fields(stripComment(scanner.Text()))
+		if len(line) == 1 {
+			return nil, fmt.Errorf("Invalid CODEOWNERS entry: %d", lineNumber)
+		} else if len(line) >= 2 {
+			regex, negateRegex := getPatternFromLine(line[0])
 			if regex != nil {
 				c := &CodeOwner{
-					Path:   elements[0],
+					Path:   line[0],
 					Regex:  regex,
 					Line:   lineNumber,
-					Owners: elements[1:],
+					Owners: line[1:],
 					Negate: negateRegex,
 				}
 				codeowners = append(codeowners, c)
@@ -115,9 +110,13 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 		for _, element := range c.Owners {
 			owner := strings.Replace(element, "@", "", 1)
 			exists, err := p.UserExists(owner)
-			if err != nil || !exists {
+			if err != nil {
+				return false, err
+			} else if !exists {
 				exists, err = p.GroupExists(owner)
-				if err != nil || !exists {
+				if err != nil {
+					return false, err
+				} else if !exists {
 					valid = false
 					log.Errorf("Error parsing line %d: user/group %s is invalid", c.Line, element)
 				}
@@ -129,50 +128,50 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 
 // getPatternFromLine converts a line to a CODEOWNERS entry
 // This is roughly addapted from https://github.com/sabhiram/go-gitignore
-func getPatternFromLine(lineNumber string) (*regexp.Regexp, bool) {
+func getPatternFromLine(line string) (*regexp.Regexp, bool) {
 	// Trim OS-specific carriage returns.
-	lineNumber = strings.TrimRight(lineNumber, "\r")
+	line = strings.TrimRight(line, "\r")
 
 	// TODO: Handle [Rule 4] which negates the match for patterns leading with "!"
 	negatePattern := false
-	if lineNumber[0] == '!' {
+	if line[0] == '!' {
 		negatePattern = true
-		lineNumber = lineNumber[1:]
+		line = line[1:]
 	}
 
 	// If we encounter a foo/*.blah in a folder, prepend the / char
-	if regexp.MustCompile(`([^\/+])/.*\*\.`).MatchString(lineNumber) && lineNumber[0] != '/' {
-		lineNumber = "/" + lineNumber
+	if regexp.MustCompile(`([^\/+])/.*\*\.`).MatchString(line) && line[0] != '/' {
+		line = "/" + line
 	}
 
 	// Handle escaping the "." char
-	lineNumber = regexp.MustCompile(`\.`).ReplaceAllString(lineNumber, `\.`)
+	line = regexp.MustCompile(`\.`).ReplaceAllString(line, `\.`)
 
 	magicStar := "#$~"
 
 	// Handle "/**/" usage
-	if strings.HasPrefix(lineNumber, "/**/") {
-		lineNumber = lineNumber[1:]
+	if strings.HasPrefix(line, "/**/") {
+		line = line[1:]
 	}
-	lineNumber = regexp.MustCompile(`/\*\*/`).ReplaceAllString(lineNumber, `(/|/.+/)`)
-	lineNumber = regexp.MustCompile(`\*\*/`).ReplaceAllString(lineNumber, `(|.`+magicStar+`/)`)
-	lineNumber = regexp.MustCompile(`/\*\*`).ReplaceAllString(lineNumber, `(|/.`+magicStar+`)`)
+	line = regexp.MustCompile(`/\*\*/`).ReplaceAllString(line, `(/|/.+/)`)
+	line = regexp.MustCompile(`\*\*/`).ReplaceAllString(line, `(|.`+magicStar+`/)`)
+	line = regexp.MustCompile(`/\*\*`).ReplaceAllString(line, `(|/.`+magicStar+`)`)
 
 	// Handle escaping the "*" char
-	lineNumber = regexp.MustCompile(`\\\*`).ReplaceAllString(lineNumber, `\`+magicStar)
-	lineNumber = regexp.MustCompile(`\*`).ReplaceAllString(lineNumber, `([^/]*)`)
+	line = regexp.MustCompile(`\\\*`).ReplaceAllString(line, `\`+magicStar)
+	line = regexp.MustCompile(`\*`).ReplaceAllString(line, `([^/]*)`)
 
 	// Handle escaping the "?" char
-	lineNumber = strings.Replace(lineNumber, "?", `\?`, -1)
+	line = strings.Replace(line, "?", `\?`, -1)
 
-	lineNumber = strings.Replace(lineNumber, magicStar, "*", -1)
+	line = strings.Replace(line, magicStar, "*", -1)
 
 	// Temporary regex
 	var expr = ""
-	if strings.HasSuffix(lineNumber, "/") {
-		expr = lineNumber + "(|.*)$"
+	if strings.HasSuffix(line, "/") {
+		expr = line + "(|.*)$"
 	} else {
-		expr = lineNumber + "(|/.*)$"
+		expr = line + "(|/.*)$"
 	}
 	if strings.HasPrefix(expr, "/") {
 		expr = "^(|/)" + expr[1:]
@@ -205,8 +204,7 @@ func VerifyCodeowner(codeowners []*CodeOwner, filename string, ignore []string) 
 	for _, c := range reverseCodeOwners(codeowners) {
 		match := c.MatchesPath(filename)
 		if match {
-			owners := difference(c.Owners, ignore)
-			return c, len(owners) > 0
+			return c, hasDifference(c.Owners, ignore)
 		}
 	}
 	return &CodeOwner{}, false

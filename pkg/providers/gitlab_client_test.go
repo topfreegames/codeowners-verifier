@@ -131,7 +131,7 @@ func TestSearchUserNotFound(t *testing.T) {
 	}
 	MockGitlabClient.EXPECT().ListUsers(username).Return([]*gitlab.User{}, nil).Times(1)
 	valid, err := client.UserExists(username)
-	assert.Equal(t, fmt.Errorf("User not found"), err)
+	assert.Equal(t, nil, err)
 	assert.Equal(t, false, valid)
 }
 func TestSearchUserMultipleUsers(t *testing.T) {
@@ -156,6 +156,29 @@ func TestSearchUserMultipleUsers(t *testing.T) {
 	valid, err := client.UserExists(username)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, true, valid)
+}
+func TestSearchUserMultipleUsersNotFound(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	username := "mock_user"
+	gitlabUsers := []*gitlab.User{
+		{
+			Username: username + "_1",
+		},
+		{
+			Username: username + "_2",
+		},
+	}
+	defer mockCtrl.Finish()
+	MockGitlabClient := NewMockClientInterface(mockCtrl)
+	client := &Gitlab{
+		Token:   "example_token",
+		BaseURL: "example_url",
+		Api:     MockGitlabClient,
+	}
+	MockGitlabClient.EXPECT().ListUsers(username).Return(gitlabUsers, nil).Times(1)
+	valid, err := client.UserExists(username)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, false, valid)
 }
 func TestSearchGroupSuccess(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
@@ -204,7 +227,7 @@ func TestSearchGroupNotFound(t *testing.T) {
 	}
 	MockGitlabClient.EXPECT().ListGroups(groupName).Return([]*gitlab.Group{}, nil).Times(1)
 	valid, err := client.GroupExists(groupName)
-	assert.Equal(t, fmt.Errorf("Group not found"), err)
+	assert.Equal(t, nil, err)
 	assert.Equal(t, false, valid)
 }
 func TestSearchGroupMultipleGroups(t *testing.T) {
@@ -229,4 +252,27 @@ func TestSearchGroupMultipleGroups(t *testing.T) {
 	valid, err := client.GroupExists(groupName)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, true, valid)
+}
+func TestSearchGroupMultipleGroupsNotFound(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	groupName := "mock_group"
+	gitlabGroups := []*gitlab.Group{
+		{
+			Name: groupName + "_1",
+		},
+		{
+			Name: groupName + "_2",
+		},
+	}
+	defer mockCtrl.Finish()
+	MockGitlabClient := NewMockClientInterface(mockCtrl)
+	client := &Gitlab{
+		Token:   "example_token",
+		BaseURL: "example_url",
+		Api:     MockGitlabClient,
+	}
+	MockGitlabClient.EXPECT().ListGroups(groupName).Return(gitlabGroups, nil).Times(1)
+	valid, err := client.GroupExists(groupName)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, false, valid)
 }

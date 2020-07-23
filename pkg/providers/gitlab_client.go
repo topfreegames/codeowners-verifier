@@ -9,7 +9,7 @@ import (
 // GitlabClient interface implements the Gitlab Client
 //go:generate mockgen -destination=gitlab_client_mock.go -package=providers github.com/topfreegames/codeowners-verifier/pkg/providers ClientInterface
 type ClientInterface interface {
-	NewClient(Token string, BaseURL string)
+	NewClient(token string, baseURL string)
 	ListUsers(name string) ([]*gitlab.User, error)
 	ListGroups(name string) ([]*gitlab.Group, error)
 }
@@ -75,7 +75,7 @@ func (g *Gitlab) UserExists(name string) (bool, error) {
 			return true, nil
 		}
 	}
-	return false, fmt.Errorf("User not found")
+	return false, nil
 }
 
 // SearchGroup searches a group by name
@@ -89,5 +89,5 @@ func (g *Gitlab) GroupExists(name string) (bool, error) {
 			return true, nil
 		}
 	}
-	return false, fmt.Errorf("Group not found")
+	return false, nil
 }
