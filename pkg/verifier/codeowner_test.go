@@ -495,6 +495,9 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 			Name: "Correct CodeOwners File",
 			Sample: map[string]interface{}{
 				"CodeOwners": filet.TmpFile(t, "", `* @user1
+/*.* @user1
+/**/* @user1
+/`+folder1+`/** @user1
 `+folder1+` @user2 @group1
 `+folder1+`/* @user3
 `+folder2+`/** @group1
