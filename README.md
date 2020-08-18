@@ -58,7 +58,7 @@ FATA[0000] Missing CODEOWNER entry, matched rule from line 7 don't have valid ow
 
 ### Validate
 
-Validate validates the entire CODEOWNERS file, checking if the users and/or groups are valid. It does that by checking if the user or group is validy on the provider API.
+Validate validates the entire CODEOWNERS file, checking if the users and/or groups are valid. It does that by checking if the user or group is valid on the provider API.
 
 It must receive the name of the provider. YOu can check for the available providers by executing the help:
 
