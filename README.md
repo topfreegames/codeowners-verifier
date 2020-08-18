@@ -39,6 +39,8 @@ $ ./codeowners-verifier help verify
 
 Verify must receive a path as argument. It then checks if the given path is covered by any of the existing entries.
 
+:warning: This runs against the relative path of the git repository
+
 Example:
 
 ```bash
