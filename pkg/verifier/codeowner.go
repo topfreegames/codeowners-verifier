@@ -4,11 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode"
-
-	glob "gopkg.in/godo.v2/glob"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/topfreegames/codeowners-verifier/pkg/providers"
@@ -102,8 +101,16 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 	}
 	valid := true
 	for _, c := range codeowners {
-		// This doesn't works for ! patterns
-		if files, _, err := glob.Glob([]string{c.Path}); err != nil || len(files) < 1 {
+		currentDir, _ := os.Getwd()
+		files, _ := FilePathWalkDir(currentDir)
+		fileMatches := false
+		for _, file := range files {
+			if c.MatchesPath(strings.Replace(file, currentDir, "", 1)) {
+				fileMatches = true
+				break
+			}
+		}
+		if !fileMatches {
 			log.Errorf("Error parsing line %d, path %s does not exist", c.Line, c.Path)
 			valid = false
 		}
@@ -127,7 +134,7 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 }
 
 // getPatternFromLine converts a line to a CODEOWNERS entry
-// This is roughly addapted from https://github.com/sabhiram/go-gitignore
+// This is roughly adapted from https://github.com/sabhiram/go-gitignore
 func getPatternFromLine(line string) (*regexp.Regexp, bool) {
 	// Trim OS-specific carriage returns.
 	line = strings.TrimRight(line, "\r")
@@ -181,6 +188,17 @@ func getPatternFromLine(line string) (*regexp.Regexp, bool) {
 	pattern, _ := regexp.Compile(expr)
 
 	return pattern, negatePattern
+}
+
+func FilePathWalkDir(root string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return files, err
 }
 
 // MatchesPath returns true if the given GitIgnore structure would target

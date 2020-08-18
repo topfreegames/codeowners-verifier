@@ -466,13 +466,13 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		./folder2/folder3/file3
 		./file4
 	*/
-	folder1 := filet.TmpDir(t, "")
-	folder2 := filet.TmpDir(t, "")
-	folder3 := filet.TmpDir(t, folder2)
+	folder1 := filet.TmpDir(t, "./")
+	folder2 := filet.TmpDir(t, "./")
+	folder3 := filet.TmpDir(t, "./"+folder2)
 	filet.TmpFile(t, folder1, "")
 	filet.TmpFile(t, folder2, "")
 	file1 := filet.TmpFile(t, folder3, "").Name()
-	filet.TmpFile(t, "", "")
+	filet.TmpFile(t, "./", "")
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 	MockGitlabClient := providers.NewMockClientInterface(mockCtrl)
