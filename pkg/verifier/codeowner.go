@@ -104,12 +104,10 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 		currentDir, _ := os.Getwd()
 		files, _ := FilePathWalkDir(currentDir)
 		fileMatches := false
-		for _, file := range files {
-
-			if c.MatchesPath(strings.Replace(file, currentDir, "", 1)) {
-				fileMatches = true
-				break
-			}
+		for idx := 0; idx < len(files) && !fileMatches; idx++ {
+			// remove current dir from filepath to use regex properly.
+			file := strings.Replace(files[idx], currentDir, "", 1)
+			fileMatches = c.MatchesPath(file)
 		}
 		if !fileMatches {
 			log.Errorf("Error parsing line %d, path %s does not exist", c.Line, c.Path)
