@@ -39,6 +39,8 @@ $ ./codeowners-verifier help verify
 
 Verify must receive a path as argument. It then checks if the given path is covered by any of the existing entries.
 
+:warning: This runs against the relative path of the git repository
+
 Example:
 
 ```bash
@@ -58,7 +60,7 @@ FATA[0000] Missing CODEOWNER entry, matched rule from line 7 don't have valid ow
 
 ### Validate
 
-Validate validates the entire CODEOWNERS file, checking if the users and/or groups are valid. It does that by checking if the user or group is validy on the provider API.
+Validate validates the entire CODEOWNERS file, checking if the users and/or groups are valid. It does that by checking if the user or group is valid on the provider API.
 
 It must receive the name of the provider. YOu can check for the available providers by executing the help:
 

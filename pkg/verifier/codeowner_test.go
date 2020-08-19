@@ -1,6 +1,7 @@
 package verifier
 
 import (
+	"path/filepath"
 	"regexp"
 	"testing"
 
@@ -466,13 +467,13 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		./folder2/folder3/file3
 		./file4
 	*/
-	folder1 := filet.TmpDir(t, "")
-	folder2 := filet.TmpDir(t, "")
-	folder3 := filet.TmpDir(t, folder2)
+	folder1 := filet.TmpDir(t, "./")
+	folder2 := filet.TmpDir(t, "./")
+	folder3 := filet.TmpDir(t, filepath.Join("./", folder2))
 	filet.TmpFile(t, folder1, "")
 	filet.TmpFile(t, folder2, "")
 	file1 := filet.TmpFile(t, folder3, "").Name()
-	filet.TmpFile(t, "", "")
+	filet.TmpFile(t, "./", "")
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 	MockGitlabClient := providers.NewMockClientInterface(mockCtrl)
@@ -495,6 +496,9 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 			Name: "Correct CodeOwners File",
 			Sample: map[string]interface{}{
 				"CodeOwners": filet.TmpFile(t, "", `* @user1
+/*.* @user1
+/**/* @user1
+/`+folder1+`/** @user1
 `+folder1+` @user2 @group1
 `+folder1+`/* @user3
 `+folder2+`/** @group1
