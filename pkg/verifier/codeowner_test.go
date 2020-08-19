@@ -1,6 +1,7 @@
 package verifier
 
 import (
+	"path/filepath"
 	"regexp"
 	"testing"
 
@@ -468,7 +469,7 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 	*/
 	folder1 := filet.TmpDir(t, "./")
 	folder2 := filet.TmpDir(t, "./")
-	folder3 := filet.TmpDir(t, "./"+folder2)
+	folder3 := filet.TmpDir(t, filepath.Join("./", folder2))
 	filet.TmpFile(t, folder1, "")
 	filet.TmpFile(t, folder2, "")
 	file1 := filet.TmpFile(t, folder3, "").Name()
