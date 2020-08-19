@@ -105,6 +105,7 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 		files, _ := FilePathWalkDir(currentDir)
 		fileMatches := false
 		for _, file := range files {
+
 			if c.MatchesPath(strings.Replace(file, currentDir, "", 1)) {
 				fileMatches = true
 				break
@@ -198,6 +199,9 @@ func FilePathWalkDir(root string) ([]string, error) {
 		}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 	return files, err
 }
 
