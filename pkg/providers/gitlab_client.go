@@ -79,10 +79,31 @@ func (c *GitlabClient) ListUsers(name string) ([]*gitlab.User, error) {
 
 // ListAllUsers returns a list of all Gitlab users
 func (c *GitlabClient) ListAllUsers() ([]*gitlab.User, error) {
-	users, _, err := c.client.Users.ListUsers(&gitlab.ListUsersOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("error retriving user list: %s", err)
+	var users []*gitlab.User
+
+	opt := &gitlab.ListUsersOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: 100,
+			Page:    1,
+		},
 	}
+
+	for {
+		iteration_users, resp, err := c.client.Users.ListUsers(opt)
+		if err != nil {
+			fmt.Errorf("error retriving user list: %s", err)
+		}
+		users = append(users, iteration_users...)
+		// Exit the loop when we've seen all pages.
+		if resp.CurrentPage >= resp.TotalPages {
+			break
+		}
+
+		// Update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	fmt.Println(len(users))
 	return users, nil
 }
 
@@ -97,10 +118,33 @@ func (c *GitlabClient) ListGroups(name string) ([]*gitlab.Group, error) {
 
 // ListAllGroups returns a list of all Gitlab groups
 func (c *GitlabClient) ListAllGroups() ([]*gitlab.Group, error) {
-	groups, _, err := c.client.Groups.ListGroups(&gitlab.ListGroupsOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("error searching for group %s", err)
+
+	var groups []*gitlab.Group
+
+	opt := &gitlab.ListGroupsOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: 100,
+			Page:    1,
+		},
 	}
+
+	for {
+		iteration_groups, resp, err := c.client.Groups.ListGroups(opt)
+		if err != nil {
+			fmt.Errorf("error retriving user list: %s", err)
+		}
+		groups = append(groups, iteration_groups...)
+		// Exit the loop when we've seen all pages.
+		if resp.CurrentPage >= resp.TotalPages {
+			break
+		}
+
+		// Update the page number to get the next page.
+		opt.Page = resp.NextPage
+	}
+
+	fmt.Println(len(groups))
+
 	return groups, nil
 }
 
