@@ -3,7 +3,6 @@ package providers
 import "fmt"
 
 type Provider interface {
-	Init() error
 	UserExists(username string) (bool, error)
 	GroupExists(username string) (bool, error)
 }
@@ -16,11 +15,9 @@ func InitProvider(provider string, token string, baseURL string) (Provider, erro
 	var client Provider
 	switch provider {
 	case "gitlab":
-		client = &Gitlab{
-			Token:   token,
-			BaseURL: baseURL,
-		}
-		if err := client.Init(); err != nil {
+		var err error
+
+		if client, err = NewGitlabProviderClient(token, baseURL); err != nil {
 			return nil, err
 		}
 	default:

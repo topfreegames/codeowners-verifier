@@ -5,62 +5,51 @@
 package providers
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	gitlab "github.com/xanzy/go-gitlab"
-	reflect "reflect"
 )
 
-// MockClientInterface is a mock of ClientInterface interface
+// MockClientInterface is a mock of ClientInterface interface.
 type MockClientInterface struct {
 	ctrl     *gomock.Controller
 	recorder *MockClientInterfaceMockRecorder
 }
 
-// MockClientInterfaceMockRecorder is the mock recorder for MockClientInterface
+// MockClientInterfaceMockRecorder is the mock recorder for MockClientInterface.
 type MockClientInterfaceMockRecorder struct {
 	mock *MockClientInterface
 }
 
-// NewMockClientInterface creates a new mock instance
+// NewMockClientInterface creates a new mock instance.
 func NewMockClientInterface(ctrl *gomock.Controller) *MockClientInterface {
 	mock := &MockClientInterface{ctrl: ctrl}
 	mock.recorder = &MockClientInterfaceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClientInterface) EXPECT() *MockClientInterfaceMockRecorder {
 	return m.recorder
 }
 
-// NewClient mocks base method
-func (m *MockClientInterface) NewClient(Token, BaseURL string) {
+// ListAllUsers mocks base method.
+func (m *MockClientInterface) ListAllUsers() ([]*gitlab.User, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "NewClient", Token, BaseURL)
-}
-
-// NewClient indicates an expected call of NewClient
-func (mr *MockClientInterfaceMockRecorder) NewClient(Token, BaseURL interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClient", reflect.TypeOf((*MockClientInterface)(nil).NewClient), Token, BaseURL)
-}
-
-// ListUsers mocks base method
-func (m *MockClientInterface) ListUsers(name string) ([]*gitlab.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListUsers", name)
+	ret := m.ctrl.Call(m, "ListAllUsers")
 	ret0, _ := ret[0].([]*gitlab.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListUsers indicates an expected call of ListUsers
-func (mr *MockClientInterfaceMockRecorder) ListUsers(name interface{}) *gomock.Call {
+// ListAllUsers indicates an expected call of ListAllUsers.
+func (mr *MockClientInterfaceMockRecorder) ListAllUsers() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockClientInterface)(nil).ListUsers), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllUsers", reflect.TypeOf((*MockClientInterface)(nil).ListAllUsers))
 }
 
-// ListGroups mocks base method
+// ListGroups mocks base method.
 func (m *MockClientInterface) ListGroups(name string) ([]*gitlab.Group, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListGroups", name)
@@ -69,8 +58,35 @@ func (m *MockClientInterface) ListGroups(name string) ([]*gitlab.Group, error) {
 	return ret0, ret1
 }
 
-// ListGroups indicates an expected call of ListGroups
+// ListGroups indicates an expected call of ListGroups.
 func (mr *MockClientInterfaceMockRecorder) ListGroups(name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroups", reflect.TypeOf((*MockClientInterface)(nil).ListGroups), name)
+}
+
+// ListUsers mocks base method.
+func (m *MockClientInterface) ListUsers(name string) ([]*gitlab.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUsers", name)
+	ret0, _ := ret[0].([]*gitlab.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUsers indicates an expected call of ListUsers.
+func (mr *MockClientInterfaceMockRecorder) ListUsers(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockClientInterface)(nil).ListUsers), name)
+}
+
+// NewClient mocks base method.
+func (m *MockClientInterface) NewClient(token, baseURL string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NewClient", token, baseURL)
+}
+
+// NewClient indicates an expected call of NewClient.
+func (mr *MockClientInterfaceMockRecorder) NewClient(token, baseURL interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewClient", reflect.TypeOf((*MockClientInterface)(nil).NewClient), token, baseURL)
 }

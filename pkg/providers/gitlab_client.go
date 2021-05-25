@@ -12,13 +12,17 @@ type ClientInterface interface {
 	NewClient(token string, baseURL string)
 	ListUsers(name string) ([]*gitlab.User, error)
 	ListGroups(name string) ([]*gitlab.Group, error)
+	ListAllUsers() ([]*gitlab.User, error)
+	ListAllGroups() ([]*gitlab.Group, error)
 }
 
-// Gitlab represents a Gitlab Client configuration
-type Gitlab struct {
-	Token   string
-	BaseURL string
-	Api     ClientInterface
+// gitlabProvider represents a Gitlab Provider configuration
+type gitlabProvider struct {
+	token   string
+	baseURL string
+	api     ClientInterface
+	users   []*gitlab.User
+	groups  []*gitlab.Group
 }
 
 // GitlabClient implements a wrapper for calling the gitlab library
@@ -31,46 +35,79 @@ func (c *GitlabClient) NewClient(Token string, BaseURL string) {
 	c.client, _ = gitlab.NewClient(Token, gitlab.WithBaseURL(BaseURL))
 }
 
+// NewClient returns a new Gitlab
+func NewGitlabProviderClient(token string, baseURL string) (*gitlabProvider, error) {
+	g := &gitlabProvider{
+		token:   token,
+		baseURL: baseURL,
+	}
+
+	if g.token == "" {
+		return nil, fmt.Errorf("token can't be empty")
+	}
+	if g.baseURL == "" {
+		g.baseURL = "https://gitlab.com/api/v4"
+	}
+	if g.api == nil {
+		g.api = &GitlabClient{}
+	}
+	g.api.NewClient(g.token, g.baseURL)
+
+	users, err := g.api.ListAllUsers()
+	if err != nil {
+		return nil, err
+	}
+	g.users = users
+
+	groups, err := g.api.ListAllGroups()
+	if err != nil {
+		return nil, err
+	}
+	g.groups = groups
+
+	return g, nil
+}
+
 // ListUsers returns a list of Gitlab users matching the name
 func (c *GitlabClient) ListUsers(name string) ([]*gitlab.User, error) {
 	users, _, err := c.client.Users.ListUsers(&gitlab.ListUsersOptions{Search: gitlab.String(name)})
 	if err != nil {
-		return nil, fmt.Errorf("Error searching for user %s: %s", name, err)
+		return nil, fmt.Errorf("error searching for user %s: %s", name, err)
 	}
 	return users, nil
 }
 
-// ListGroups returns a list of Gitlab users matching the name
+// ListAllUsers returns a list of all Gitlab users
+func (c *GitlabClient) ListAllUsers() ([]*gitlab.User, error) {
+	users, _, err := c.client.Users.ListUsers(&gitlab.ListUsersOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("error retriving user list: %s", err)
+	}
+	return users, nil
+}
+
+// ListGroups returns a list of Gitlab groups matching the name
 func (c *GitlabClient) ListGroups(name string) ([]*gitlab.Group, error) {
 	groups, _, err := c.client.Groups.ListGroups(&gitlab.ListGroupsOptions{Search: gitlab.String(name)})
 	if err != nil {
-		return nil, fmt.Errorf("Error searching for group %s: %s", name, err)
+		return nil, fmt.Errorf("error searching for group %s: %s", name, err)
 	}
 	return groups, nil
 }
 
-// Init initializes the Gitlab Client
-func (g *Gitlab) Init() error {
-	if g.Token == "" {
-		return fmt.Errorf("Token can't be empty")
+// ListAllGroups returns a list of all Gitlab groups
+func (c *GitlabClient) ListAllGroups() ([]*gitlab.Group, error) {
+	groups, _, err := c.client.Groups.ListGroups(&gitlab.ListGroupsOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("error searching for group %s", err)
 	}
-	if g.BaseURL == "" {
-		g.BaseURL = "https://gitlab.com/api/v4"
-	}
-	if g.Api == nil {
-		g.Api = &GitlabClient{}
-	}
-	g.Api.NewClient(g.Token, g.BaseURL)
-	return nil
+	return groups, nil
 }
 
 // SearchUser searches a user by name
-func (g *Gitlab) UserExists(name string) (bool, error) {
-	users, err := g.Api.ListUsers(name)
-	if err != nil {
-		return false, err
-	}
-	for _, user := range users {
+func (g *gitlabProvider) UserExists(name string) (bool, error) {
+
+	for _, user := range g.users {
 		if user.Username == name {
 			return true, nil
 		}
@@ -79,12 +116,9 @@ func (g *Gitlab) UserExists(name string) (bool, error) {
 }
 
 // SearchGroup searches a group by name
-func (g *Gitlab) GroupExists(name string) (bool, error) {
-	groups, err := g.Api.ListGroups(name)
-	if err != nil {
-		return false, err
-	}
-	for _, group := range groups {
+func (g *gitlabProvider) GroupExists(name string) (bool, error) {
+
+	for _, group := range g.groups {
 		if group.Name == name {
 			return true, nil
 		}
