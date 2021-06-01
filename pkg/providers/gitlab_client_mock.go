@@ -34,6 +34,21 @@ func (m *MockClientInterface) EXPECT() *MockClientInterfaceMockRecorder {
 	return m.recorder
 }
 
+// ListAllGroups mocks base method.
+func (m *MockClientInterface) ListAllGroups() ([]*gitlab.Group, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAllGroups")
+	ret0, _ := ret[0].([]*gitlab.Group)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAllGroups indicates an expected call of ListAllGroups.
+func (mr *MockClientInterfaceMockRecorder) ListAllGroups() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllGroups", reflect.TypeOf((*MockClientInterface)(nil).ListAllGroups))
+}
+
 // ListAllUsers mocks base method.
 func (m *MockClientInterface) ListAllUsers() ([]*gitlab.User, error) {
 	m.ctrl.T.Helper()
@@ -47,36 +62,6 @@ func (m *MockClientInterface) ListAllUsers() ([]*gitlab.User, error) {
 func (mr *MockClientInterfaceMockRecorder) ListAllUsers() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllUsers", reflect.TypeOf((*MockClientInterface)(nil).ListAllUsers))
-}
-
-// ListGroups mocks base method.
-func (m *MockClientInterface) ListGroups(name string) ([]*gitlab.Group, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGroups", name)
-	ret0, _ := ret[0].([]*gitlab.Group)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListGroups indicates an expected call of ListGroups.
-func (mr *MockClientInterfaceMockRecorder) ListGroups(name interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGroups", reflect.TypeOf((*MockClientInterface)(nil).ListGroups), name)
-}
-
-// ListUsers mocks base method.
-func (m *MockClientInterface) ListUsers(name string) ([]*gitlab.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListUsers", name)
-	ret0, _ := ret[0].([]*gitlab.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListUsers indicates an expected call of ListUsers.
-func (mr *MockClientInterfaceMockRecorder) ListUsers(name interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockClientInterface)(nil).ListUsers), name)
 }
 
 // NewClient mocks base method.

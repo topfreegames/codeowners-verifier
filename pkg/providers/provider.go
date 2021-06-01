@@ -21,7 +21,7 @@ func InitProvider(provider string, token string, baseURL string) (Provider, erro
 			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf("Invalid provider")
+		return nil, fmt.Errorf("invalid provider")
 	}
 	return client, nil
 }
