@@ -11,17 +11,17 @@ func ListProviders() []string {
 	return []string{"gitlab"}
 }
 
-func InitProvider(provider string, token string, baseURL string) (Provider, error) {
-	var client Provider
-	switch provider {
+func InitProvider(providerName string, token string, baseURL string) (Provider, error) {
+	var provider Provider
+	switch providerName {
 	case "gitlab":
 		var err error
 
-		if client, err = NewGitlabProviderClient(token, baseURL); err != nil {
+		if provider, err = NewGitlabProvider(token, baseURL); err != nil {
 			return nil, err
 		}
 	default:
 		return nil, fmt.Errorf("invalid provider")
 	}
-	return client, nil
+	return provider, nil
 }

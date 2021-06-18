@@ -6,13 +6,11 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func TestNewClientSucessful(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
-	client, _ := NewGitlabProviderClient("fake token", "fake_url")
+// func TestNewClientSucessful(t *testing.T) {
+// 	client, _ := NewGitlabProviderClient("fake token", "fake_url")
 	
-	client.api.NewClient(client.token, client.baseURL)
-}
+// 	client.api.NewClient(client.token, client.baseURL)
+// }
 
 // func TestListUsersSuccess(t *testing.T) {
 // 	mockCtrl := gomock.NewController(t)

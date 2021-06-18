@@ -6,68 +6,63 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-// GitlabClient interface implements the Gitlab Client
-//go:generate mockgen -destination=gitlab_client_mock.go -package=providers github.com/topfreegames/codeowners-verifier/pkg/providers ClientInterface
-type ClientInterface interface {
-	NewClient(token string, baseURL string)
-	ListAllUsers() ([]*gitlab.User, error)
-	ListAllGroups() ([]*gitlab.Group, error)
-}
-
 // gitlabProvider represents a Gitlab Provider configuration
 type gitlabProvider struct {
 	token   string
 	baseURL string
-	api     ClientInterface
+	client  *gitlab.Client
 	users   []*gitlab.User
 	groups  []*gitlab.Group
 }
 
-// GitlabClient implements a wrapper for calling the gitlab library
-type GitlabClient struct {
-	client *gitlab.Client
-}
+// NewClient returns a new Gitlab Provider
+func NewGitlabProvider(token string, baseURL string) (*gitlabProvider, error) {
 
-// NewClient returns a new Gitlab client
-func (c *GitlabClient) NewClient(Token string, BaseURL string) {
-	c.client, _ = gitlab.NewClient(Token, gitlab.WithBaseURL(BaseURL))
-}
-
-// NewClient returns a new Gitlab Provider Client
-func NewGitlabProviderClient(token string, baseURL string) (*gitlabProvider, error) {
-	g := &gitlabProvider{
+	gitlabProvider := &gitlabProvider{
 		token:   token,
 		baseURL: baseURL,
 	}
 
-	if g.token == "" {
+	if gitlabProvider.token == "" {
 		return nil, fmt.Errorf("token can't be empty")
 	}
-	if g.baseURL == "" {
-		g.baseURL = "https://gitlab.com/api/v4"
+	if gitlabProvider.baseURL == "" {
+		gitlabProvider.baseURL = "https://gitlab.com/api/v4"
 	}
-	if g.api == nil {
-		g.api = &GitlabClient{}
-	}
-	g.api.NewClient(g.token, g.baseURL)
 
-	users, err := g.api.ListAllUsers()
+	client, err := gitlabProvider.newClient(gitlabProvider.token, gitlabProvider.baseURL)
 	if err != nil {
 		return nil, err
 	}
-	g.users = users
+	gitlabProvider.client = client
 
-	groups, err := g.api.ListAllGroups()
+	users, err := gitlabProvider.listAllUsers()
 	if err != nil {
 		return nil, err
 	}
-	g.groups = groups
+	gitlabProvider.users = users
 
-	return g, nil
+	groups, err := gitlabProvider.listAllGroups()
+	if err != nil {
+		return nil, err
+	}
+	gitlabProvider.groups = groups
+
+	return gitlabProvider, nil
 }
 
-// ListAllUsers returns a list of all Gitlab users
-func (c *GitlabClient) ListAllUsers() ([]*gitlab.User, error) {
+// newClient returns a new Gitlab client
+func (c *gitlabProvider) newClient(Token string, BaseURL string) (*gitlab.Client, error) {
+	gitlabClient, err := gitlab.NewClient(Token, gitlab.WithBaseURL(BaseURL))
+	if err != nil {
+		fmt.Errorf("error creating gitlab client: %s", err)
+	}
+
+	return gitlabClient, err
+}
+
+// listAllUsers returns a list of all Gitlab users
+func (c *gitlabProvider) listAllUsers() ([]*gitlab.User, error) {
 	var users []*gitlab.User
 
 	opt := &gitlab.ListUsersOptions{
@@ -95,8 +90,8 @@ func (c *GitlabClient) ListAllUsers() ([]*gitlab.User, error) {
 	return users, nil
 }
 
-// ListAllGroups returns a list of all Gitlab groups
-func (c *GitlabClient) ListAllGroups() ([]*gitlab.Group, error) {
+// listAllGroups returns a list of all Gitlab groups
+func (g *gitlabProvider) listAllGroups() ([]*gitlab.Group, error) {
 
 	var groups []*gitlab.Group
 
@@ -108,7 +103,7 @@ func (c *GitlabClient) ListAllGroups() ([]*gitlab.Group, error) {
 	}
 
 	for {
-		iteration_groups, resp, err := c.client.Groups.ListGroups(opt)
+		iteration_groups, resp, err := g.client.Groups.ListGroups(opt)
 		if err != nil {
 			fmt.Errorf("error retriving group list: %s", err)
 		}
@@ -125,7 +120,7 @@ func (c *GitlabClient) ListAllGroups() ([]*gitlab.Group, error) {
 	return groups, nil
 }
 
-// SearchUser searches a user by name
+// UserExists verifies if a user exists in Gitlab by name
 func (g *gitlabProvider) UserExists(name string) (bool, error) {
 
 	for _, user := range g.users {
@@ -136,7 +131,7 @@ func (g *gitlabProvider) UserExists(name string) (bool, error) {
 	return false, nil
 }
 
-// SearchGroup searches a group by name
+// GroupExists verifies if a group exists in Gitlab by name
 func (g *gitlabProvider) GroupExists(name string) (bool, error) {
 
 	for _, group := range g.groups {
