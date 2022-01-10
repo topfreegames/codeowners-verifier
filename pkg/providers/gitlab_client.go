@@ -33,19 +33,53 @@ func (c *GitlabClient) NewClient(Token string, BaseURL string) {
 
 // ListUsers returns a list of Gitlab users matching the name
 func (c *GitlabClient) ListUsers(name string) ([]*gitlab.User, error) {
-	users, _, err := c.client.Users.ListUsers(&gitlab.ListUsersOptions{Search: gitlab.String(name)})
-	if err != nil {
-		return nil, fmt.Errorf("Error searching for user %s: %s", name, err)
+	opt := &gitlab.ListUsersOptions{
+		Search: gitlab.String(name),
+		ListOptions: gitlab.ListOptions{
+			PerPage: 20,
+			Page:    1,
+		},
 	}
+	var users []*gitlab.User
+
+	for {
+		paginatedUsers, response, err := c.client.Users.ListUsers(opt)
+		if err != nil {
+			return nil, fmt.Errorf("Error searching for user %s: %s", name, err)
+		}
+		users = append(users, paginatedUsers...)
+		if response.NextPage == 0 {
+			break
+		}
+		opt.Page = response.NextPage
+	}
+
 	return users, nil
 }
 
 // ListGroups returns a list of Gitlab users matching the name
 func (c *GitlabClient) ListGroups(name string) ([]*gitlab.Group, error) {
-	groups, _, err := c.client.Groups.ListGroups(&gitlab.ListGroupsOptions{Search: gitlab.String(name)})
-	if err != nil {
-		return nil, fmt.Errorf("Error searching for group %s: %s", name, err)
+	opt := &gitlab.ListGroupsOptions{
+		Search: gitlab.String(name),
+		ListOptions: gitlab.ListOptions{
+			PerPage: 20,
+			Page:    1,
+		},
 	}
+	var groups []*gitlab.Group
+
+	for {
+		paginatedGroups, response, err := c.client.Groups.ListGroups(opt)
+		if err != nil {
+			return nil, fmt.Errorf("Error searching for group %s: %s", name, err)
+		}
+		groups = append(groups, paginatedGroups...)
+		if response.NextPage == 0 {
+			break
+		}
+		opt.Page = response.NextPage
+	}
+
 	return groups, nil
 }
 
@@ -85,7 +119,7 @@ func (g *Gitlab) GroupExists(name string) (bool, error) {
 		return false, err
 	}
 	for _, group := range groups {
-		if group.Name == name {
+		if group.FullPath == name {
 			return true, nil
 		}
 	}

@@ -1,4 +1,4 @@
-FROM golang:1.14 as build
+FROM golang:1.17 as build
 
 WORKDIR /src
 
@@ -11,7 +11,7 @@ ARG GOOS=linux
 ARG GOARCH=amd64
 RUN CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH make all
 
-FROM alpine:3.11.6
+FROM alpine:3.15
 COPY --from=build /src/build/codeowners-verifier /usr/local/bin
 
-CMD [ "codeowners-verifier", "help" ]
+CMD ["codeowners-verifier", "help" ]
