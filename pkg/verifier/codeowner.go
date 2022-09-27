@@ -31,7 +31,7 @@ func reverseCodeOwners(a []*CodeOwner) []*CodeOwner {
 }
 
 // Used to remove comment lines
-const commentChars = "[#]"
+const commentChars = "^[#]"
 
 // stripComment uses the commentChars to remove comments from lines
 func stripComment(source string) string {
