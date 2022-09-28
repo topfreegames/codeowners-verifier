@@ -94,6 +94,11 @@ func TestStripComment(t *testing.T) {
 			Sample:   "* @test",
 			Expected: "* @test",
 		},
+		{
+			Name:     "Checking line section ^[]",
+			Sample:   "^[SectionThatShouldBeSanitized]",
+			Expected: "",
+		},
 	}
 
 	for i, test := range tests {
