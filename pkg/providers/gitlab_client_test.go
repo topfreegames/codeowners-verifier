@@ -186,6 +186,7 @@ func TestSearchGroupSuccess(t *testing.T) {
 	gitlabGroups := []*gitlab.Group{
 		{
 			Name: groupName,
+                        FullPath: groupName,
 		},
 	}
 	defer mockCtrl.Finish()
@@ -236,9 +237,11 @@ func TestSearchGroupMultipleGroups(t *testing.T) {
 	gitlabGroups := []*gitlab.Group{
 		{
 			Name: groupName,
+                        FullPath: groupName,
 		},
 		{
 			Name: groupName + "_2",
+                        FullPath: groupName + "_2",
 		},
 	}
 	defer mockCtrl.Finish()

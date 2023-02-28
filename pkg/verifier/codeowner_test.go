@@ -573,7 +573,7 @@ func TestValidateCodeownerFileGitlab(t *testing.T) {
 		MockGitlabClient.EXPECT().ListUsers("user3").Return([]*gitlab.User{{Username: "user3"}}, nil).AnyTimes()
 		MockGitlabClient.EXPECT().ListUsers("user100").Return([]*gitlab.User{}, nil).AnyTimes()
 		MockGitlabClient.EXPECT().ListUsers("group1").Return([]*gitlab.User{}, nil).AnyTimes()
-		MockGitlabClient.EXPECT().ListGroups("group1").Return([]*gitlab.Group{{Name: "group1"}}, nil).AnyTimes()
+		MockGitlabClient.EXPECT().ListGroups("group1").Return([]*gitlab.Group{{Name: "group1", FullPath: "group1"}}, nil).AnyTimes()
 		MockGitlabClient.EXPECT().ListGroups("user100").Return([]*gitlab.Group{}, nil).AnyTimes()
 		val, err := ValidateCodeownerFile(sample["Provider"].(providers.Provider), sample["CodeOwners"].(string))
 		if expected.Error {
