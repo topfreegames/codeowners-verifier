@@ -95,18 +95,18 @@ func ReadCodeownersFile(filename string) ([]*CodeOwner, error) {
 // 1. Has a valid file/path
 // 2. Check if every owner is an user or a group.
 func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) {
+        var validEntriesCache map[string]int = make(map[string]int)
 	codeowners, err := ReadCodeownersFile(filename)
 	if err != nil {
 		return false, err
 	}
 	valid := true
+        currentDir, _ := os.Getwd()
+        files, _ := FilePathWalkDir(currentDir)
 	for _, c := range codeowners {
-		currentDir, _ := os.Getwd()
-		files, _ := FilePathWalkDir(currentDir)
 		fileMatches := false
 		for idx := 0; idx < len(files) && !fileMatches; idx++ {
-			// remove current dir from filepath to use regex properly.
-			file := strings.Replace(files[idx], currentDir, "", 1)
+                        file := files[idx]
 			fileMatches = c.MatchesPath(file)
 		}
 		if !fileMatches {
@@ -115,16 +115,28 @@ func ValidateCodeownerFile(p providers.Provider, filename string) (bool, error) 
 		}
 		for _, element := range c.Owners {
 			owner := strings.Replace(element, "@", "", 1)
+			_, ok := validEntriesCache[owner]
+			if ok {
+				continue
+			}
 			exists, err := p.UserExists(owner)
 			if err != nil {
 				return false, err
-			} else if !exists {
-				exists, err = p.GroupExists(owner)
-				if err != nil {
-					return false, err
-				} else if !exists {
-					valid = false
-					log.Errorf("Error parsing line %d: user/group %s is invalid", c.Line, element)
+			} else {
+				if !exists {
+					exists, err = p.GroupExists(owner)
+					if err != nil {
+						return false, err
+					} else {
+						if !exists {
+							valid = false
+							log.Errorf("Error parsing line %d: user/group %s is invalid", c.Line, element)
+						} else {
+							validEntriesCache[owner] = 2
+						}
+					}
+				} else {
+					validEntriesCache[owner] = 1
 				}
 			}
 		}
@@ -193,6 +205,8 @@ func FilePathWalkDir(root string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
+			// remove current dir from filepath to use regex properly.
+			path := strings.Replace(path, root, "", 1)
 			files = append(files, path)
 		}
 		return nil
@@ -206,8 +220,10 @@ func FilePathWalkDir(root string) ([]string, error) {
 // MatchesPath returns true if the given GitIgnore structure would target
 // a given path string `f`.
 func (co *CodeOwner) MatchesPath(f string) bool {
-	// Replace OS-specific path separator.
-	f = strings.Replace(f, string(os.PathSeparator), "/", -1)
+	// Replace OS-specific path separator if it is not "/".
+	if string(os.PathSeparator) != "/" {
+		f = strings.Replace(f, string(os.PathSeparator), "/", -1)
+	}
 
 	matchesPath := false
 	if co.Regex.MatchString(f) {
